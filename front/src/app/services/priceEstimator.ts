@@ -39,7 +39,8 @@ async function fileToBase64(file: File): Promise<string> {
  */
 export async function estimatePriceFromImage(
   file: File,
-  country: string | null
+  country: string | null,
+  language: string = 'en'
 ): Promise<EstimateResult> {
   if (!GROQ_API_KEY) {
     throw new Error('GROQ API key is not configured. Set VITE_GROQ_API_KEY in .env');
@@ -47,17 +48,20 @@ export async function estimatePriceFromImage(
 
   const base64 = await fileToBase64(file);
 
-  const prompt = `You are a Moroccan market price expert. Analyze the product in the photo and respond ONLY with a JSON object (no markdown, no explanation) like:
+  const prompt = `You are a market price expert. Analyze the product in the photo.
+Consider the country context: ${country ?? 'Morocco'}. Give prices in MAD base (I will convert locally).
+CRITICAL: Translate the 'name', 'category', and 'brand' values into the language with language code '${language}'.
+Respond ONLY with a JSON object (no markdown, no explanation) like:
 {
-  "name": "Short product name",
-  "category": "Category (e.g. Beverages, Food, Souvenirs, Electronics, Clothing)",
-  "brand": "Brand or 'Generic' if unknown",
+  "name": "Short product name (translated)",
+  "category": "Category (translated)",
+  "brand": "Brand or 'Generic' if unknown (translated)",
   "confidence": 0.85,
   "priceMin": 10,
   "priceMax": 20,
   "currency": { "code": "MAD", "symbol": "MAD", "prefix": false }
 }
-Country context: ${country ?? 'Morocco'}. Give prices in MAD. confidence between 0-1.`;
+confidence between 0-1.`;
 
   const response = await fetch(GROQ_API_URL, {
     method: 'POST',

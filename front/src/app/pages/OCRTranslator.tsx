@@ -191,6 +191,7 @@ export default function OCRTranslator() {
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
 
   const [image, setImage] = useState<string | null>(null);
+  const [extractedText, setExtractedText] = useState('');
   const [translation, setTranslation] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -208,6 +209,7 @@ export default function OCRTranslator() {
     if (image) URL.revokeObjectURL(image);
     const previewUrl = URL.createObjectURL(file);
     setImage(previewUrl);
+    setExtractedText('');
     setTranslation('');
     setCopied(false);
     setIsProcessing(true);
@@ -222,21 +224,51 @@ export default function OCRTranslator() {
 
       if (!text) {
         toast.error('No text detected in this image. Try a clearer photo.');
+        setIsProcessing(false);
         return;
       }
 
-      // Translate with Groq
-      const result = await translateText(text, targetLang);
-      setTranslation(result);
-      toast.success('Translation ready!');
+      // Save extracted text to trigger translation effect
+      setExtractedText(text);
     } catch (error) {
       console.error(error);
       const msg = error instanceof Error ? error.message : 'Unknown error';
       toast.error(`Failed: ${msg}`);
-    } finally {
       setIsProcessing(false);
     }
   };
+
+  // Re-translate when text or target language changes
+  useEffect(() => {
+    if (!extractedText) return;
+
+    let isMounted = true;
+    const runTranslation = async () => {
+      setIsProcessing(true);
+      try {
+        const result = await translateText(extractedText, targetLang);
+        if (isMounted) {
+          setTranslation(result);
+          toast.success('Translation ready!');
+        }
+      } catch (error) {
+        console.error(error);
+        if (isMounted) {
+          toast.error('Failed to translate');
+        }
+      } finally {
+        if (isMounted) {
+          setIsProcessing(false);
+        }
+      }
+    };
+
+    void runTranslation();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [extractedText, targetLang]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -262,6 +294,7 @@ export default function OCRTranslator() {
   const handleReset = () => {
     if (image) URL.revokeObjectURL(image);
     setImage(null);
+    setExtractedText('');
     setTranslation('');
     setCopied(false);
   };

@@ -1,6 +1,7 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, DollarSign, Sparkles, TrendingUp, Upload } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { ArrowLeft, Camera, DollarSign, Sparkles, TrendingUp, Upload, ChevronDown, Check } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Skeleton } from '../components/ui/skeleton';
 import { toast } from 'sonner';
@@ -15,11 +16,19 @@ type CatalogItem = {
   max: number;
 };
 
+export const AVAILABLE_CURRENCIES: Currency[] = [
+  { code: 'MAD', symbol: 'MAD', rateFromMAD: 1, prefix: false },
+  { code: 'EUR', symbol: '€', rateFromMAD: 0.092, prefix: true },
+  { code: 'USD', symbol: '$', rateFromMAD: 0.10, prefix: true },
+  { code: 'GBP', symbol: '£', rateFromMAD: 0.079, prefix: true },
+  { code: 'CAD', symbol: 'C$', rateFromMAD: 0.14, prefix: true },
+];
+
 const currencyByCountry: Record<string, Currency> = {
-  Morocco: { code: 'MAD', symbol: 'MAD', rateFromMAD: 1, prefix: false },
-  France: { code: 'EUR', symbol: 'EUR', rateFromMAD: 0.092, prefix: true },
-  Spain: { code: 'EUR', symbol: 'EUR', rateFromMAD: 0.092, prefix: true },
-  Portugal: { code: 'EUR', symbol: 'EUR', rateFromMAD: 0.092, prefix: true },
+  Morocco: AVAILABLE_CURRENCIES[0],
+  France: AVAILABLE_CURRENCIES[1],
+  Spain: AVAILABLE_CURRENCIES[1],
+  Portugal: AVAILABLE_CURRENCIES[1],
 };
 
 const mockCatalog: CatalogItem[] = [
@@ -50,8 +59,6 @@ function formatRange(min: number, max: number, currency: Currency) {
 }
 
 function buildMockResult(country: string | null, item: CatalogItem) {
-  const currency = currencyByCountry[country ?? 'Morocco'] ?? currencyByCountry.Morocco;
-  const rate = currency.rateFromMAD ?? 1;
   const confidence = 0.72 + Math.random() * 0.2;
 
   return {
@@ -59,14 +66,15 @@ function buildMockResult(country: string | null, item: CatalogItem) {
     category: item.category,
     brand: item.brand,
     confidence: Math.min(confidence, 0.95),
-    priceMin: item.min * rate,
-    priceMax: item.max * rate,
-    currency,
+    priceMin: item.min,
+    priceMax: item.max,
+    currency: AVAILABLE_CURRENCIES[0],
   } satisfies EstimateResult;
 }
 
 export default function PriceEstimator() {
   const navigate = useNavigate();
+  const { i18n } = useTranslation();
   const { country } = useAppContext();
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
@@ -75,9 +83,30 @@ export default function PriceEstimator() {
   const [result, setResult] = useState<EstimateResult | null>(null);
   const [usingApi, setUsingApi] = useState(false);
 
-  const currency = useMemo(() => {
-    return currencyByCountry[country ?? 'Morocco'] ?? currencyByCountry.Morocco;
+  const defaultCurrencyCode = currencyByCountry[country ?? 'Morocco']?.code ?? 'MAD';
+  const [selectedCurrencyCode, setSelectedCurrencyCode] = useState<string>(defaultCurrencyCode);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  // Auto-update currency if country context changes
+  useEffect(() => {
+    setSelectedCurrencyCode(currencyByCountry[country ?? 'Morocco']?.code ?? 'MAD');
   }, [country]);
+
+  const currency = useMemo(() => {
+    return AVAILABLE_CURRENCIES.find(c => c.code === selectedCurrencyCode) ?? AVAILABLE_CURRENCIES[0];
+  }, [selectedCurrencyCode]);
+
+  // Click outside listener for dropdown
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -95,7 +124,7 @@ export default function PriceEstimator() {
     setIsProcessing(true);
 
     try {
-      const apiResult = await estimatePriceFromImage(file, country);
+      const apiResult = await estimatePriceFromImage(file, country, i18n.language);
       setResult(apiResult);
       setUsingApi(true);
       toast.success('Item detected and price estimated!');
@@ -126,21 +155,58 @@ export default function PriceEstimator() {
   return (
     <div className="size-full bg-white flex flex-col">
       {/* Header */}
-      <div className="border-b px-6 py-4">
-        <button
-          onClick={() => navigate(-1)}
-          className="mb-4"
-        >
-          <ArrowLeft className="h-6 w-6 text-gray-900" />
-        </button>
+      <div className="border-b px-5 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">
-            <DollarSign className="h-6 w-6 text-white" />
+          <button onClick={() => navigate(-1)} className="p-1 -ml-1 rounded-lg hover:bg-gray-100 transition-colors">
+            <ArrowLeft className="h-5 w-5 text-gray-700" />
+          </button>
+          <div className="w-11 h-11 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-md shadow-orange-200">
+            <DollarSign className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Price Estimator</h1>
-            <p className="text-sm text-gray-600">Check if you're paying fair prices</p>
+            <h1 className="text-xl font-bold text-gray-900 leading-tight">Price Estimator</h1>
+            <p className="text-xs text-gray-500">Check if you're paying fair prices</p>
           </div>
+        </div>
+
+        {/* Currency picker */}
+        <div ref={dropdownRef} className="relative">
+          <button
+            onClick={() => setDropdownOpen((v) => !v)}
+            className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-xl shadow-sm text-sm font-medium text-gray-700 hover:border-orange-400 transition-colors"
+          >
+            <span>{currency.code}</span>
+            <ChevronDown
+              className={`h-4 w-4 text-gray-400 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}
+            />
+          </button>
+
+          {dropdownOpen && (
+            <div className="absolute right-0 top-full mt-2 w-36 bg-white border border-gray-100 rounded-2xl shadow-2xl overflow-hidden z-50">
+              <div className="p-1">
+                {AVAILABLE_CURRENCIES.map((cLang) => (
+                  <button
+                    key={cLang.code}
+                    onClick={() => {
+                      setSelectedCurrencyCode(cLang.code);
+                      setDropdownOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-left transition-colors ${
+                      cLang.code === selectedCurrencyCode
+                        ? 'bg-orange-50 text-orange-700 font-semibold'
+                        : 'text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span>{cLang.code}</span>
+                    <span className="text-xs text-gray-400">({cLang.symbol})</span>
+                    {cLang.code === selectedCurrencyCode && (
+                      <Check className="h-4 w-4 ml-auto text-orange-500" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -276,7 +342,11 @@ export default function PriceEstimator() {
                 <div className="mt-4 bg-white p-4 rounded-xl">
                   <p className="text-sm text-gray-600 mb-2">Fair Price Range</p>
                   <p className="text-3xl font-bold text-green-600">
-                    {formatRange(result.priceMin, result.priceMax, result.currency)}
+                    {formatRange(
+                      result.priceMin * (currency.rateFromMAD ?? 1),
+                      result.priceMax * (currency.rateFromMAD ?? 1),
+                      currency
+                    )}
                   </p>
                   {!usingApi && (
                     <p className="mt-2 text-xs text-gray-500">Mock result (API not available).</p>

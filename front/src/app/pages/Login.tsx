@@ -5,6 +5,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { useAppContext } from '../context/AppContext';
+import { useTranslation } from 'react-i18next';
 
 const roleOptions = [
   { value: 'tourist', label: 'Tourist' },
@@ -14,6 +15,7 @@ const roleOptions = [
 ] as const;
 
 export default function Login() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -54,13 +56,13 @@ export default function Login() {
       <div className="flex-1 px-6 py-8">
         <div className="mx-auto max-w-md space-y-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Connexion</h2>
+            <h2 className="text-2xl font-bold text-gray-900">{t('login.title')}</h2>
             <p className="mt-1 text-gray-600">
               {isTouristGuideRequestFlow
-                ? 'Connectez-vous ou inscrivez-vous pour envoyer votre demande directement au guide.'
+                ? t('login.subtitleGuide')
                 : redirectTo === '/country'
-                ? 'Connectez-vous pour synchroniser votre compte et vos activites.'
-                : 'Cette action est sensible. Connectez-vous pour continuer.'}
+                ? t('login.subtitle')
+                : t('login.subtitleSensitive')}
             </p>
           </div>
 
@@ -102,9 +104,9 @@ export default function Login() {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">{t('login.password')}</Label>
                 <button type="button" className="text-sm text-[#0D9488] hover:underline">
-                  Forgot password?
+                  {t('login.forgotPassword')}
                 </button>
               </div>
               <div className="relative">
@@ -128,14 +130,14 @@ export default function Login() {
             </div>
 
             <Button type="submit" className="h-12 w-full rounded-xl bg-[#0D9488] text-white hover:bg-[#0D9488]/90">
-              Login
+              {t('login.loginBtn')}
             </Button>
           </form>
 
           <p className="text-center text-sm text-gray-600">
-            Pas de compte ?{' '}
+            {t('login.noAccount')}{' '}
             <button onClick={() => navigate(`/register?redirectTo=${encodeURIComponent(redirectTo)}`)} className="font-medium text-[#0D9488] hover:underline">
-              Inscription
+              {t('login.registerLink')}
             </button>
           </p>
 
@@ -143,7 +145,7 @@ export default function Login() {
             onClick={() => navigate('/country')}
             className="mx-auto flex items-center gap-2 text-sm font-medium text-[#0D9488] hover:underline"
           >
-            Aller directement au choix du pays
+            {t('login.skipToCountry')}
             <ArrowRight className="h-4 w-4" />
           </button>
         </div>

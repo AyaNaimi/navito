@@ -2,62 +2,64 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Bell, Calendar, Car, Globe, Heart, HelpCircle, LayoutDashboard, LogOut, Settings, Shield, ShieldCheck, User, UserRound } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { useAppContext } from '../context/AppContext';
+import { useTranslation } from 'react-i18next';
 
 export default function Profile() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { resetFlow, userEmail, userName, userRole } = useAppContext();
 
   const roleMeta = {
     tourist: {
-      title: 'Tourist Dashboard',
-      description: 'Explore cities, request guides, book drivers, and join activities.',
-      chips: ['Bookings', 'Saved places', 'Travel support'],
+      title: t('profile.roles.tourist.title'),
+      description: t('profile.roles.tourist.description'),
+      chips: [t('profile.roles.tourist.chips.bookings'), t('profile.roles.tourist.chips.saved'), t('profile.roles.tourist.chips.support')],
     },
     guide: {
-      title: 'Guide Dashboard',
-      description: 'Manage guide requests, availability, and your city tours.',
-      chips: ['Requests', 'Schedule', 'Reviews'],
+      title: t('profile.roles.guide.title'),
+      description: t('profile.roles.guide.description'),
+      chips: [t('profile.roles.guide.chips.requests'), t('profile.roles.guide.chips.schedule'), t('profile.roles.guide.chips.reviews')],
     },
     driver: {
-      title: 'Driver Dashboard',
-      description: 'Manage ride requests, availability, and transport activity.',
-      chips: ['Ride queue', 'Availability', 'Earnings'],
+      title: t('profile.roles.driver.title'),
+      description: t('profile.roles.driver.description'),
+      chips: [t('profile.roles.driver.chips.queue'), t('profile.roles.driver.chips.availability'), t('profile.roles.driver.chips.earnings')],
     },
     super_admin: {
-      title: 'Super Admin Dashboard',
-      description: 'Oversee users, operations, and platform-wide settings.',
-      chips: ['Users', 'Operations', 'Reports'],
+      title: t('profile.roles.admin.title'),
+      description: t('profile.roles.admin.description'),
+      chips: [t('profile.roles.admin.chips.users'), t('profile.roles.admin.chips.operations'), t('profile.roles.admin.chips.reports')],
     },
-  } as const;
+  };
 
   const roleMenus = {
     tourist: [
-      { icon: Heart, label: 'Saved Places', action: () => {} },
-      { icon: Calendar, label: 'My Bookings', action: () => {} },
-      { icon: Bell, label: 'Notifications', action: () => {} },
+      { icon: Heart, label: t('profile.menu.savedPlaces'), action: () => {} },
+      { icon: Calendar, label: t('profile.menu.myBookings'), action: () => {} },
+      { icon: Bell, label: t('profile.menu.notifications'), action: () => {} },
     ],
     guide: [
-      { icon: LayoutDashboard, label: 'Guide Requests', action: () => navigate('/guide') },
-      { icon: Calendar, label: 'My Schedule', action: () => {} },
-      { icon: UserRound, label: 'Traveler Reviews', action: () => {} },
+      { icon: LayoutDashboard, label: t('profile.menu.guideRequests'), action: () => navigate('/guide') },
+      { icon: Calendar, label: t('profile.menu.mySchedule'), action: () => {} },
+      { icon: UserRound, label: t('profile.menu.travelerReviews'), action: () => {} },
     ],
     driver: [
-      { icon: Car, label: 'Ride Requests', action: () => navigate('/transport') },
-      { icon: Calendar, label: 'Availability', action: () => {} },
-      { icon: Bell, label: 'Driver Alerts', action: () => {} },
+      { icon: Car, label: t('profile.menu.rideRequests'), action: () => navigate('/transport') },
+      { icon: Calendar, label: t('profile.menu.availability'), action: () => {} },
+      { icon: Bell, label: t('profile.menu.driverAlerts'), action: () => {} },
     ],
     super_admin: [
-      { icon: ShieldCheck, label: 'Platform Overview', action: () => {} },
-      { icon: User, label: 'User Management', action: () => {} },
-      { icon: Settings, label: 'Admin Settings', action: () => {} },
+      { icon: ShieldCheck, label: t('profile.menu.platformOverview'), action: () => {} },
+      { icon: User, label: t('profile.menu.userManagement'), action: () => {} },
+      { icon: Settings, label: t('profile.menu.adminSettings'), action: () => {} },
     ],
-  } as const;
+  };
 
   const commonMenuItems = [
-    { icon: Globe, label: 'Language', action: () => navigate('/language') },
-    { icon: Shield, label: 'Privacy & Safety', action: () => {} },
-    { icon: HelpCircle, label: 'Help & Support', action: () => {} },
-    { icon: Settings, label: 'Settings', action: () => {} },
+    { icon: Globe, label: t('profile.menu.language'), action: () => navigate('/language') },
+    { icon: Shield, label: t('profile.menu.privacySafety'), action: () => {} },
+    { icon: HelpCircle, label: t('profile.menu.helpSupport'), action: () => {} },
+    { icon: Settings, label: t('profile.menu.settings'), action: () => {} },
   ];
 
   const menuItems = [...roleMenus[userRole], ...commonMenuItems];
@@ -126,7 +128,7 @@ export default function Profile() {
           className="h-12 w-full rounded-xl border-red-200 text-red-600 hover:bg-red-50"
         >
           <LogOut className="mr-2 h-5 w-5" />
-          Sign Out
+          {t('profile.menu.signOut')}
         </Button>
       </div>
     </div>

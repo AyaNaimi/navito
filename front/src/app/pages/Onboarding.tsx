@@ -2,29 +2,33 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { Button } from '../components/ui/button';
+import { useTranslation } from 'react-i18next';
 import img1 from '../../assets/b936e34de051bc299deaad6dc888364043138630.png';
 
-const slides = [
+const getSlides = (t: any) => [
   {
-    title: 'Un seul app, une arrivée plus fluide.',
-    description: 'Navito prépare votre voyage dès le départ avec langue, accès invité et contenu local.',
+    title: t('onboarding.slide1Title'),
+    description: t('onboarding.slide1Desc'),
     image: img1,
   },
   {
-    title: 'Choisissez le pays puis la ville.',
-    description: 'Vous accédez directement aux activités, restaurants et transports pertinents pour votre destination.',
+    title: t('onboarding.slide2Title'),
+    description: t('onboarding.slide2Desc'),
     image: img1,
   },
   {
-    title: 'Sinon, explorez avec la carte actuelle.',
-    description: 'Si la ville n’est pas encore couverte, Navito bascule vers l’exploration par localisation actuelle.',
+    title: t('onboarding.slide3Title'),
+    description: t('onboarding.slide3Desc'),
     image: img1,
   },
 ];
 
 export default function Onboarding() {
+  const { t } = useTranslation();
   const [currentSlide, setCurrentSlide] = useState(0);
   const navigate = useNavigate();
+
+  const slides = getSlides(t);
 
   const handleNext = () => {
     if (currentSlide < slides.length - 1) {
@@ -42,7 +46,7 @@ export default function Onboarding() {
           onClick={() => navigate('/language')}
           className="text-sm font-medium text-gray-600 hover:text-gray-900"
         >
-          Passer
+          {t('common.skip')}
         </button>
       </div>
 
@@ -72,7 +76,7 @@ export default function Onboarding() {
 
       <div className="space-y-3 p-6">
         <Button onClick={handleNext} className="h-12 w-full rounded-xl bg-[#0D9488] text-white hover:bg-[#0D9488]/90">
-          {currentSlide === slides.length - 1 ? 'Commencer' : 'Continuer'}
+          {currentSlide === slides.length - 1 ? t('onboarding.start') : t('common.continue')}
           <ChevronRight className="ml-2 h-5 w-5" />
         </Button>
       </div>

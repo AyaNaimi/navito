@@ -6,8 +6,10 @@ import { Input } from '../components/ui/input';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { activities, cities, monuments } from '../data/mockData';
 import { useAppContext } from '../context/AppContext';
+import { useTranslation } from 'react-i18next';
 
 export default function Home() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { city, exploreMode } = useAppContext();
 
@@ -22,10 +24,10 @@ export default function Home() {
         <div className="px-6 py-4">
           <div className="mb-4 flex items-center justify-between">
             <div className="animate-enter-hero">
-              <p className="text-sm text-white/80">Bienvenue sur Navito</p>
+              <p className="text-sm text-white/80">{t('home.welcome')}</p>
               <h1 className="flex items-center gap-2 text-2xl font-bold text-white">
                 <MapPin className="h-5 w-5" />
-                {exploreMode === 'current-location' ? 'Carte actuelle' : activeCity}
+                {exploreMode === 'current-location' ? t('home.currentMap') : activeCity}
               </h1>
             </div>
             <button onClick={() => navigate('/profile')} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20">
@@ -37,7 +39,7 @@ export default function Home() {
 
           <div className="relative">
             <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-            <Input placeholder="Explorer la destination..." className="h-12 rounded-xl border-0 bg-white pl-12" onClick={() => navigate('/explore')} />
+            <Input placeholder={t('home.searchPlaceholder')} className="h-12 rounded-xl border-0 bg-white pl-12" onClick={() => navigate('/explore')} />
           </div>
         </div>
       </div>
@@ -77,10 +79,10 @@ export default function Home() {
             <div className="mb-4 flex items-center justify-between">
               <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900">
                 <TrendingUp className="h-5 w-5 text-[#0D9488]" />
-                Autres villes à découvrir
+                {t('home.otherCities')}
               </h2>
               <button onClick={() => navigate('/city')} className="text-sm font-medium text-[#0D9488] hover:underline">
-                Changer
+                {t('common.change')}
               </button>
             </div>
 
@@ -102,10 +104,10 @@ export default function Home() {
         <div className="mb-2 bg-white px-6 py-4">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-bold text-gray-900">
-              {exploreMode === 'current-location' ? 'Recommandé autour de vous' : `Incontournables à ${activeCity}`}
+              {exploreMode === 'current-location' ? t('home.recommendedAround') : t('home.mustSeeIn', { city: activeCity })}
             </h2>
             <button onClick={() => navigate('/explore')} className="text-sm font-medium text-[#0D9488] hover:underline">
-              Tout voir
+              {t('common.seeAll')}
             </button>
           </div>
 
@@ -135,7 +137,7 @@ export default function Home() {
           <div className="mb-4 flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-lg font-bold text-gray-900">
               <Sparkles className="h-5 w-5 text-yellow-500" />
-              Expériences
+              {t('home.experiences')}
             </h2>
           </div>
 

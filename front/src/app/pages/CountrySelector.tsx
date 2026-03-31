@@ -3,8 +3,10 @@ import { ArrowLeft, ChevronRight, Globe2, MapPinned } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { supportedCountries } from '../data/locationData';
 import { useAppContext } from '../context/AppContext';
+import { useTranslation } from 'react-i18next';
 
 export default function CountrySelector() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { country, setCountry, useCurrentLocation } = useAppContext();
 
@@ -23,9 +25,9 @@ export default function CountrySelector() {
           <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0D9488]/10 text-[#0D9488]">
             <Globe2 className="h-7 w-7" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Choisissez le pays</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t('country.title')}</h1>
           <p className="mt-2 text-sm text-gray-600">
-            Si la ville est prise en charge, Navito affichera un contenu local ciblé.
+            {t('country.subtitle')}
           </p>
         </div>
       </div>
@@ -63,7 +65,7 @@ export default function CountrySelector() {
           }}
         >
           <MapPinned className="mr-2 h-5 w-5" />
-          Continuer avec la carte actuelle
+          {t('country.continueMap')}
         </Button>
       </div>
     </div>

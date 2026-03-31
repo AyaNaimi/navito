@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import i18n from '../i18n';
 
 type AuthMode = 'guest' | 'login';
 type ExploreMode = 'city' | 'current-location';
@@ -62,6 +63,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    i18n.changeLanguage(state.language);
   }, [state]);
 
   const value = useMemo<AppContextValue>(() => ({

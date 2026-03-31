@@ -5,6 +5,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { useAppContext } from '../context/AppContext';
+import { useTranslation } from 'react-i18next';
 
 const roleOptions = [
   { value: 'tourist', label: 'Tourist' },
@@ -14,6 +15,7 @@ const roleOptions = [
 ] as const;
 
 export default function Register() {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -53,11 +55,11 @@ export default function Register() {
       <div className="flex-1 overflow-auto px-6 py-8">
         <div className="mx-auto max-w-md space-y-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Creer un compte</h2>
+            <h2 className="text-2xl font-bold text-gray-900">{t('register.title')}</h2>
             <p className="mt-1 text-gray-600">
               {isTouristGuideRequestFlow
-                ? 'Creez un compte touriste pour envoyer votre demande directement au guide.'
-                : 'Inscrivez-vous puis selectionnez votre pays et votre ville.'}
+                ? t('register.subtitleGuide')
+                : t('register.subtitle')}
             </p>
           </div>
 
@@ -85,7 +87,7 @@ export default function Register() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="name">Nom complet</Label>
+              <Label htmlFor="name">{t('register.name')}</Label>
               <Input
                 id="name"
                 type="text"
@@ -133,7 +135,7 @@ export default function Register() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="confirmPassword">{t('register.confirmPassword')}</Label>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -146,7 +148,7 @@ export default function Register() {
             </div>
 
             <Button type="submit" className="h-12 w-full rounded-xl bg-[#0D9488] text-white hover:bg-[#0D9488]/90">
-              Creer le compte
+              {t('register.registerBtn')}
             </Button>
           </form>
         </div>

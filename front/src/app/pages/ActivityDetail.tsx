@@ -3,8 +3,10 @@ import { ArrowLeft, MapPin, Star, Clock, Users, Check, Heart, Share2, Calendar }
 import { Button } from '../components/ui/button';
 import { monuments, activities } from '../data/mockData';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
+import { useTranslation } from 'react-i18next';
 
 export default function ActivityDetail() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -16,7 +18,7 @@ export default function ActivityDetail() {
   if (!item) {
     return (
       <div className="size-full flex items-center justify-center">
-        <p>Activity not found</p>
+        <p>{t('activity.notFound', 'Activity not found')}</p>
       </div>
     );
   }
@@ -55,7 +57,7 @@ export default function ActivityDetail() {
         {('isPromoted' in item && item.isPromoted) && (
           <div className="absolute bottom-6 left-6">
             <div className="bg-yellow-400 text-gray-900 text-sm font-bold px-3 py-1.5 rounded-full">
-              FEATURED
+              {t('activity.featured', 'FEATURED')}
             </div>
           </div>
         )}
@@ -75,7 +77,7 @@ export default function ActivityDetail() {
               <div className="flex items-center gap-1">
                 <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
                 <span className="font-medium text-gray-900">{item.rating}</span>
-                <span>({item.reviews} reviews)</span>
+                <span>({item.reviews} {t('activity.reviews', 'reviews')})</span>
               </div>
             </div>
           </div>
@@ -87,14 +89,14 @@ export default function ActivityDetail() {
                 <div className="bg-gray-50 p-4 rounded-xl">
                   <div className="flex items-center gap-2 text-gray-600 mb-1">
                     <Clock className="h-4 w-4" />
-                    <span className="text-sm">Duration</span>
+                    <span className="text-sm">{t('activity.duration', 'Duration')}</span>
                   </div>
                   <p className="font-semibold text-gray-900">{monument.duration}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-xl">
                   <div className="flex items-center gap-2 text-gray-600 mb-1">
                     <Calendar className="h-4 w-4" />
-                    <span className="text-sm">Hours</span>
+                    <span className="text-sm">{t('activity.hours', 'Hours')}</span>
                   </div>
                   <p className="font-semibold text-gray-900 text-sm">{monument.hours}</p>
                 </div>
@@ -104,14 +106,14 @@ export default function ActivityDetail() {
                 <div className="bg-gray-50 p-4 rounded-xl">
                   <div className="flex items-center gap-2 text-gray-600 mb-1">
                     <Clock className="h-4 w-4" />
-                    <span className="text-sm">Duration</span>
+                    <span className="text-sm">{t('activity.duration', 'Duration')}</span>
                   </div>
                   <p className="font-semibold text-gray-900">{activity?.duration}</p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-xl">
                   <div className="flex items-center gap-2 text-gray-600 mb-1">
                     <Users className="h-4 w-4" />
-                    <span className="text-sm">Group Size</span>
+                    <span className="text-sm">{t('activity.groupSize', 'Group Size')}</span>
                   </div>
                   <p className="font-semibold text-gray-900">{activity?.groupSize}</p>
                 </div>
@@ -121,14 +123,14 @@ export default function ActivityDetail() {
 
           {/* Description */}
           <div>
-            <h2 className="text-lg font-bold text-gray-900 mb-3">Description</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-3">{t('activity.descriptionTitle', 'Description')}</h2>
             <p className="text-gray-700 leading-relaxed">{item.description}</p>
           </div>
 
           {/* What's Included (for activities) */}
           {!isMonument && activity && (
             <div>
-              <h2 className="text-lg font-bold text-gray-900 mb-3">What's Included</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-3">{t('activity.included', 'What\'s Included')}</h2>
               <div className="space-y-2">
                 {activity.includes.split(',').map((inc, index) => (
                   <div key={index} className="flex items-start gap-2">
@@ -145,7 +147,7 @@ export default function ActivityDetail() {
           {/* Tips (for monuments) */}
           {isMonument && monument && (
             <div>
-              <h2 className="text-lg font-bold text-gray-900 mb-3">Tips</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-3">{t('activity.tips', 'Tips')}</h2>
               <div className="bg-blue-50 p-4 rounded-xl">
                 <p className="text-gray-700">{monument.tips}</p>
               </div>
@@ -154,7 +156,7 @@ export default function ActivityDetail() {
 
           {/* Reviews */}
           <div>
-            <h2 className="text-lg font-bold text-gray-900 mb-3">Reviews</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-3">{t('activity.reviewsTitle', 'Reviews')}</h2>
             <div className="space-y-4">
               {[
                 {
@@ -196,7 +198,7 @@ export default function ActivityDetail() {
       <div className="border-t bg-white px-6 py-4 safe-area-bottom">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm text-gray-600">Price</p>
+            <p className="text-sm text-gray-600">{t('activity.priceLabel', 'Price')}</p>
             <p className="text-2xl font-bold text-gray-900">
               {isMonument ? monument.price : `${activity?.price} MAD`}
             </p>
@@ -205,7 +207,7 @@ export default function ActivityDetail() {
             onClick={() => navigate(`/checkout/${isMonument ? 'monument' : 'activity'}/${item.id}`)}
             className="flex-1 h-12 bg-[#0D9488] hover:bg-[#0D9488]/90 rounded-xl"
           >
-            Book Now
+            {t('activity.bookNow', 'Book Now')}
           </Button>
         </div>
       </div>

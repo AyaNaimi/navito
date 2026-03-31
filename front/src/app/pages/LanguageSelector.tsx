@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { useAppContext } from '../context/AppContext';
+import { useTranslation } from 'react-i18next';
 
 const languages = [
   { code: 'en', name: 'English', tag: 'EN' },
@@ -14,6 +15,7 @@ const languages = [
 ];
 
 export default function LanguageSelector() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { language, setLanguage } = useAppContext();
   const [selectedLanguage, setSelectedLanguage] = useState(language);
@@ -21,8 +23,8 @@ export default function LanguageSelector() {
   return (
     <div className="size-full bg-white flex flex-col">
       <div className="border-b p-6 animate-enter-hero">
-        <h1 className="text-2xl font-bold text-gray-900">Choisissez votre langue</h1>
-        <p className="mt-1 text-sm text-gray-600">C’est la première étape du flux Navito.</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('language.title')}</h1>
+        <p className="mt-1 text-sm text-gray-600">{t('language.subtitle')}</p>
       </div>
 
       <div className="flex-1 overflow-auto p-6">
@@ -56,7 +58,7 @@ export default function LanguageSelector() {
           }}
           className="h-12 w-full rounded-xl bg-[#0D9488] text-white hover:bg-[#0D9488]/90"
         >
-          Continuer
+          {t('language.continue')}
         </Button>
       </div>
     </div>

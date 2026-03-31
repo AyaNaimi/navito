@@ -5,8 +5,10 @@ import { Button } from '../components/ui/button';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { useAppContext } from '../context/AppContext';
 import { supportedCitiesByCountry } from '../data/locationData';
+import { useTranslation } from 'react-i18next';
 
 export default function CitySelector() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { country, city, setCity, useCurrentLocation } = useAppContext();
   const [isLocating, setIsLocating] = useState(false);
@@ -43,12 +45,12 @@ export default function CitySelector() {
         </button>
         <div className="animate-enter-hero">
           <h1 className="text-3xl font-bold text-gray-900">
-            {cities.length ? 'Choisissez la ville' : 'Ville non disponible'}
+            {cities.length ? t('city.title') : t('city.noCityAvailable')}
           </h1>
           <p className="mt-2 text-sm text-gray-600">
             {cities.length
-              ? `Contenu disponible pour ${country}. Sélectionnez une ville pour explorer le contenu local.`
-              : `Aucun contenu local n'est encore disponible pour ${country}. Utilisez la carte actuelle.`}
+              ? t('city.availableForCountry', { country })
+              : t('city.unavailableForCountry', { country })}
           </p>
         </div>
       </div>
@@ -77,9 +79,9 @@ export default function CitySelector() {
                       <MapPin className="h-4 w-4" />
                       <span className="text-sm font-medium">{item.country}</span>
                     </div>
-                    <p className="text-xl font-semibold text-gray-900">{item.name}</p>
+                    <p className="xl font-semibold text-gray-900">{item.name}</p>
                     <p className="mt-1 text-sm text-gray-600">
-                      Recommandations, restaurants, activités et transport adaptés à cette ville.
+                      {t('city.cityDescription')}
                     </p>
                   </div>
                 </div>
@@ -91,9 +93,9 @@ export default function CitySelector() {
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#0D9488]/10 text-[#0D9488]">
               <MapPinned className="h-8 w-8" />
             </div>
-            <p className="text-lg font-semibold text-gray-900">Passez par la carte actuelle</p>
+            <p className="text-lg font-semibold text-gray-900">{t('city.useMapTitle')}</p>
             <p className="mt-2 text-sm text-gray-600">
-              Navito utilisera votre position actuelle pour lancer l’exploration.
+              {t('city.useMapDesc')}
             </p>
           </div>
         )}
@@ -102,7 +104,7 @@ export default function CitySelector() {
       <div className="border-t bg-white p-6">
         <Button onClick={handleUseCurrentLocation} className="h-12 w-full rounded-2xl bg-[#0D9488] hover:bg-[#0D9488]/90">
           <Navigation className="mr-2 h-5 w-5" />
-          {isLocating ? 'Localisation en cours...' : 'Choisir directement avec la carte actuelle'}
+          {isLocating ? t('city.locating') : t('city.chooseMapBtn')}
         </Button>
       </div>
     </div>

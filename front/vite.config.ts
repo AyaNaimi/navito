@@ -3,6 +3,7 @@ import path from 'path';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 
+// Update to trigger Vite server restart and re-optimize dependencies
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
@@ -14,6 +15,12 @@ export default defineConfig({
     host: '127.0.0.1',
     port: 5173,
     strictPort: true,
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+      },
+    },
     hmr: {
       host: '127.0.0.1',
       protocol: 'ws',

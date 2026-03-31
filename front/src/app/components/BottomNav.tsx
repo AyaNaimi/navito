@@ -1,17 +1,19 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Home, Compass, Car, UserRound, Users } from 'lucide-react';
-
-const navItems = [
-  { path: '/home', icon: Home, label: 'Home' },
-  { path: '/explore', icon: Compass, label: 'Explore' },
-  { path: '/transport', icon: Car, label: 'Transport' },
-  { path: '/guide', icon: UserRound, label: 'Guide' },
-  { path: '/community', icon: Users, label: 'Community' },
-];
+import { useTranslation } from 'react-i18next';
 
 export default function BottomNav() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
+
+  const navItems = [
+    { path: '/home', icon: Home, label: t('nav.home') },
+    { path: '/explore', icon: Compass, label: t('nav.explore') },
+    { path: '/transport', icon: Car, label: t('nav.transport') },
+    { path: '/guide', icon: UserRound, label: t('nav.guide') },
+    { path: '/community', icon: Users, label: t('nav.community') },
+  ];
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area-bottom z-50">

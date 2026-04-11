@@ -7,11 +7,13 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import CountrySelector from './pages/CountrySelector';
 import CitySelector from './pages/CitySelector';
+
 import Home from './pages/Home';
 import Explore from './pages/Explore';
 import ActivityDetail from './pages/ActivityDetail';
 import RestaurantDetail from './pages/RestaurantDetail';
 import Checkout from './pages/Checkout';
+
 import Transport from './pages/Transport';
 import Restaurants from './pages/Restaurants';
 import Safety from './pages/Safety';
@@ -27,7 +29,7 @@ import GuideRequestForm from './pages/GuideRequestForm';
 export default function App() {
   return (
     <BrowserRouter>
-      <div className="size-full bg-white dark:bg-gray-900">
+      <div className="size-full overflow-x-hidden overflow-y-auto bg-transparent">
         <Routes>
           <Route path="/splash" element={<SplashScreen />} />
           <Route path="/onboarding" element={<Onboarding />} />

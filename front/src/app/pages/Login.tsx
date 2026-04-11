@@ -6,6 +6,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { useAppContext } from '../context/AppContext';
 import { useTranslation } from 'react-i18next';
+import { motion } from 'framer-motion';
 
 const roleOptions = [
   { value: 'tourist', label: 'Tourist' },
@@ -48,16 +49,19 @@ export default function Login() {
   };
 
   return (
-    <div className="size-full bg-white flex flex-col">
-      <div className="p-6 animate-enter-hero">
-        <h1 className="text-3xl font-serif text-[#0D9488]">Navito</h1>
-      </div>
+    <div className="min-h-screen w-full bg-[#FAFAFA] flex flex-col font-sans antialiased text-[#171717]">
+      <header className="px-6 py-10 max-w-md mx-auto w-full text-center">
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
+          <h1 className="text-[28px] font-bold tracking-tighter text-[#171717]">Navito</h1>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#A3A3A3] mt-1">Global Guest Experience</p>
+        </motion.div>
+      </header>
 
-      <div className="flex-1 px-6 py-8">
-        <div className="mx-auto max-w-md space-y-6">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">{t('login.title')}</h2>
-            <p className="mt-1 text-gray-600">
+      <main className="flex-1 px-6 pb-12">
+        <div className="mx-auto max-w-md space-y-10">
+          <div className="space-y-3">
+            <h2 className="text-[22px] font-bold tracking-tight text-[#171717]">{t('login.title')}</h2>
+            <p className="text-[13px] leading-relaxed text-[#737373] font-medium">
               {isTouristGuideRequestFlow
                 ? t('login.subtitleGuide')
                 : redirectTo === '/country'
@@ -66,20 +70,20 @@ export default function Login() {
             </p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-8">
             {!isTouristGuideRequestFlow && (
-              <div className="space-y-2">
-                <Label>Role</Label>
-                <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-4">
+                <Label className="text-[11px] font-bold uppercase tracking-widest text-[#737373] ml-1">Access Protocol</Label>
+                <div className="grid grid-cols-2 gap-3">
                   {roleOptions.map((role) => (
                     <button
                       key={role.value}
                       type="button"
                       onClick={() => setSelectedRole(role.value)}
-                      className={`rounded-xl border px-3 py-3 text-sm font-medium transition-colors ${
+                      className={`rounded-2xl border px-4 py-3.5 text-[12px] font-bold uppercase tracking-wider transition-all shadow-sm ${
                         selectedRole === role.value
-                          ? 'border-[#0D9488] bg-[#0D9488]/10 text-[#0D9488]'
-                          : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                          ? 'border-[#171717] bg-[#171717] text-white'
+                          : 'border-[#E5E5E5] bg-white text-[#737373] hover:border-[#171717]/30'
                       }`}
                     >
                       {role.label}
@@ -89,67 +93,74 @@ export default function Login() {
               </div>
             )}
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="your@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="h-12 rounded-xl"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">{t('login.password')}</Label>
-                <button type="button" className="text-sm text-[#0D9488] hover:underline">
-                  {t('login.forgotPassword')}
-                </button>
-              </div>
-              <div className="relative">
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-[11px] font-bold uppercase tracking-widest text-[#737373] ml-1">Email Identifier</Label>
                 <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="........"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="h-12 rounded-xl pr-10"
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="name@nexus.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="h-12 rounded-2xl border-[#E5E5E5] bg-white px-5 text-[14px] font-medium shadow-sm transition-all focus:border-[#171717]/20 focus:ring-0"
                   required
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                </button>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between px-1">
+                  <Label htmlFor="password" className="text-[11px] font-bold uppercase tracking-widest text-[#737373]">{t('login.password')}</Label>
+                </div>
+                <div className="relative group">
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="h-12 rounded-2xl border-[#E5E5E5] bg-white px-5 text-[14px] font-medium shadow-sm transition-all focus:border-[#171717]/20 focus:ring-0"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-[#A3A3A3] hover:text-[#171717] transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
             </div>
 
-            <Button type="submit" className="h-12 w-full rounded-xl bg-[#0D9488] text-white hover:bg-[#0D9488]/90">
+            <Button type="submit" className="h-12 w-full rounded-2xl bg-[#171717] text-white font-bold text-[13px] uppercase tracking-[0.2em] shadow-lg shadow-black/10 hover:opacity-90 active:scale-[0.98] transition-all">
               {t('login.loginBtn')}
             </Button>
           </form>
 
-          <p className="text-center text-sm text-gray-600">
-            {t('login.noAccount')}{' '}
-            <button onClick={() => navigate(`/register?redirectTo=${encodeURIComponent(redirectTo)}`)} className="font-medium text-[#0D9488] hover:underline">
-              {t('login.registerLink')}
-            </button>
-          </p>
+          <footer className="space-y-6 text-center">
+            <p className="text-[12px] font-medium text-[#737373]">
+              {t('login.noAccount')}{' '}
+              <button 
+                onClick={() => navigate(`/register?redirectTo=${encodeURIComponent(redirectTo)}`)} 
+                className="font-bold text-[#171717] hover:underline underline-offset-4"
+              >
+                {t('login.registerLink')}
+              </button>
+            </p>
 
-          <button
-            onClick={() => navigate('/country')}
-            className="mx-auto flex items-center gap-2 text-sm font-medium text-[#0D9488] hover:underline"
-          >
-            {t('login.skipToCountry')}
-            <ArrowRight className="h-4 w-4" />
-          </button>
+            <Button
+              variant="link"
+              onClick={() => navigate('/country')}
+              className="text-[11px] font-bold uppercase tracking-widest text-[#A3A3A3] hover:text-[#171717] p-0 h-auto"
+            >
+              {t('login.skipToCountry')}
+              <ArrowRight className="h-3 w-3 ml-2" />
+            </Button>
+          </footer>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

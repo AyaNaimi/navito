@@ -5,10 +5,14 @@ import { useAppContext } from '../context/AppContext';
 import { guides } from '../data/mockData';
 import BottomNav from '../components/BottomNav';
 import { Button } from '../components/ui/button';
+import { Card } from '../components/ui/card';
 import { BadgeCheck, Languages, MapPin, MessageCircle, Phone, Star, UserRound } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { motion } from 'framer-motion';
 
 export default function Guide() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { authMode, city, exploreMode, userRole } = useAppContext();
 
   const activeCity = city || 'Marrakech';
@@ -30,97 +34,119 @@ export default function Guide() {
   };
 
   return (
-    <div className="size-full bg-white flex flex-col pb-16">
-      <div className="bg-[#0D9488] px-6 py-6 text-white">
-        <h1 className="mb-2 text-2xl font-bold">Guide</h1>
-        <p className="text-sm text-white/80">
-          {exploreMode === 'city' && city
-            ? `Demandez un guide local disponible a ${city}`
-            : 'Trouvez un guide local disponible autour de votre position actuelle'}
-        </p>
-      </div>
+    <div className="min-h-screen w-full bg-[#FAFAFA] flex flex-col pb-24 font-sans antialiased text-[#171717]">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-[#E5E5E5] px-6 py-6 transition-all">
+        <div className="max-w-xl mx-auto w-full">
+          <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }}>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-[#737373] mb-1">Local Network</p>
+            <h1 className="text-[20px] font-bold tracking-tight">Expert Guides</h1>
+            <p className="text-[12px] font-medium text-[#737373] mt-1">
+              {exploreMode === 'city' && city
+                ? `Find verified local experts in ${city}`
+                : 'Connect with hosts in your current area'}
+            </p>
+          </motion.div>
+        </div>
+      </header>
 
-      <div className="flex-1 overflow-auto px-6 py-6">
-        <div className="mb-5 rounded-2xl bg-[#0D9488]/8 p-4">
-          <div className="flex items-start gap-3">
-            <div className="mt-1 flex h-10 w-10 items-center justify-center rounded-full bg-[#0D9488] text-white">
-              <UserRound className="h-5 w-5" />
+      <main className="flex-1 max-w-xl mx-auto w-full px-6 py-8">
+        {/* Verification Banner */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="mb-8 rounded-2xl border border-[#E5E5E5] bg-white p-5 shadow-sm"
+        >
+          <div className="flex items-start gap-4">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#F5F5F7] border border-[#E5E5E5] text-[#171717] shrink-0">
+              <BadgeCheck className="h-5.5 w-5.5" />
             </div>
             <div>
-              <h2 className="font-semibold text-gray-900">Guides locaux verifies</h2>
-              <p className="mt-1 text-sm text-gray-600">
-                {exploreMode === 'city' && city
-                  ? `Voici les guides proposes dans la ville de ${city}.`
-                  : 'Voici une selection de guides disponibles pour vous accompagner.'}
+              <h2 className="text-[14px] font-bold text-[#171717]">Vetted Identity Network</h2>
+              <p className="mt-1 text-[12px] text-[#737373] leading-relaxed font-medium">
+                Every guide in the Navito network undergoes identity verification and expertise validation to ensure your security.
               </p>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="space-y-3">
-          {availableGuides.map((guide) => (
-            <div key={guide.id} className="rounded-2xl border-2 border-gray-200 p-4 transition-colors hover:border-[#0D9488]">
-              <div className="flex gap-4">
-                <div className="relative">
-                  <img src={guide.image} alt={guide.name} className="h-16 w-16 rounded-full object-cover" />
-                  {guide.verified && (
-                    <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-blue-500">
-                      <BadgeCheck className="h-3.5 w-3.5 text-white" />
+        <div className="space-y-4">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[#737373] ml-1">Available Hosts</p>
+          {availableGuides.map((guide, idx) => (
+            <motion.div
+              key={guide.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.05, ease: [0.23, 1, 0.32, 1] as any }}
+            >
+              <Card className="rounded-2xl border border-[#E5E5E5] bg-white p-5 shadow-sm transition-all hover:bg-[#F5F5F7] group">
+                <div className="flex gap-5">
+                  <div className="relative shrink-0">
+                    <div className="h-16 w-16 rounded-full overflow-hidden border border-[#E5E5E5]">
+                      <img src={guide.image} alt={guide.name} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
                     </div>
-                  )}
+                    {guide.verified && (
+                      <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-[#171717] shadow-sm">
+                        <BadgeCheck className="h-3 w-3 text-white" />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="min-w-0 flex-1 space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="text-[15px] font-bold text-[#171717]">{guide.name}</h3>
+                        <p className="text-[11px] font-bold text-[#A3A3A3] uppercase tracking-wider">{guide.city}</p>
+                      </div>
+                      <div className="flex items-center gap-1 bg-[#F5F5F7] px-2 py-0.5 rounded-lg border border-[#E5E5E5]/50">
+                        <Star className="h-3 w-3 fill-[#171717] text-[#171717]" />
+                        <span className="text-[12px] font-bold">{guide.rating}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-x-4 gap-y-2 text-[11px] font-medium text-[#737373]">
+                      <div className="flex items-center gap-1.5">
+                        <MapPin className="h-3.5 w-3.5 text-[#171717]" />
+                        <span>{guide.specialty}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <BadgeCheck className="h-3.5 w-3.5 text-[#171717]" />
+                        <span>{guide.experience} Exp.</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wide text-[#A3A3A3]">
+                      <Languages className="h-3.5 w-3.5" />
+                      {guide.languages.join(' · ')}
+                    </div>
+
+                    <div className="flex items-center justify-between pt-3 border-t border-[#F5F5F7]">
+                      <div className="text-[13px] font-bold">
+                        {guide.pricePerHalfDay} <span className="text-[10px] text-[#737373]">MAD / Half Day</span>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="icon" className="h-9 w-9 rounded-full border-[#E5E5E5] hover:bg-white group-hover:bg-white">
+                          <Phone className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button variant="outline" size="icon" className="h-9 w-9 rounded-full border-[#E5E5E5] hover:bg-white group-hover:bg-white">
+                          <MessageCircle className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button 
+                          onClick={() => handleRequestGuide(guide.id)} 
+                          className="h-9 px-5 bg-[#171717] text-white rounded-full text-[11px] font-bold uppercase tracking-wider hover:opacity-90 active:scale-[0.98] transition-all"
+                        >
+                          Request
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-
-                <div className="min-w-0 flex-1">
-                  <div className="mb-1 flex items-center justify-between gap-3">
-                    <div>
-                      <h3 className="font-bold text-gray-900">{guide.name}</h3>
-                      <p className="text-sm text-gray-500">{guide.city}</p>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <span className="text-sm font-semibold">{guide.rating}</span>
-                    </div>
-                  </div>
-
-                  <div className="mb-2 flex flex-wrap items-center gap-4 text-sm text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-4 w-4" />
-                      <span>{guide.specialty}</span>
-                    </div>
-                    <span>{guide.experience} experience</span>
-                  </div>
-
-                  <div className="mb-3 flex items-center gap-2">
-                    <Languages className="h-4 w-4 text-gray-400" />
-                    <span className="text-xs text-gray-600">{guide.languages.join(', ')}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="text-sm">
-                      <span className="text-gray-600">A partir de </span>
-                      <span className="font-bold text-[#0D9488]">{guide.pricePerHalfDay} MAD / demi-journee</span>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" className="h-8 w-8 rounded-full p-0">
-                        <Phone className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="sm" className="h-8 w-8 rounded-full p-0">
-                        <MessageCircle className="h-4 w-4" />
-                      </Button>
-                      <Button onClick={() => handleRequestGuide(guide.id)} size="sm" className="bg-[#0D9488] hover:bg-[#0D9488]/90">
-                        Demander
-                      </Button>
-                    </div>
-                  </div>
-
-                  <p className="mt-2 text-xs text-gray-500">{guide.reviews} avis • reponse en {guide.responseTime}</p>
-                </div>
-              </div>
-            </div>
+              </Card>
+            </motion.div>
           ))}
         </div>
-      </div>
+      </main>
 
       <BottomNav />
     </div>

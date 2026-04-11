@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Home, Compass, Car, UserRound, Users } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 
 export default function BottomNav() {
@@ -16,8 +17,8 @@ export default function BottomNav() {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area-bottom z-50">
-      <div className="grid grid-cols-5 h-16">
+    <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-[#E5E5E5] safe-area-bottom z-50 transition-all font-sans">
+      <div className="max-w-xl mx-auto w-full grid grid-cols-5 h-16">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
@@ -26,12 +27,24 @@ export default function BottomNav() {
             <button
               key={item.path}
               onClick={() => navigate(item.path)}
-              className={`flex flex-col items-center justify-center gap-1 transition-colors ${
-                isActive ? 'text-[#0D9488]' : 'text-gray-500 hover:text-gray-900'
-              }`}
+              className="relative flex flex-col items-center justify-center transition-all group overflow-hidden"
             >
-              <Icon className="h-5 w-5" />
-              <span className="text-xs font-medium">{item.label}</span>
+              <div className="relative flex flex-col items-center gap-1 transition-all group-hover:scale-105 active:scale-95">
+                <Icon className={`h-5 w-5 transition-colors ${
+                  isActive ? 'text-[#171717]' : 'text-[#A3A3A3] group-hover:text-[#171717]'
+                }`} />
+                <span className={`text-[10px] font-bold uppercase tracking-widest transition-colors ${
+                  isActive ? 'text-[#171717]' : 'text-[#A3A3A3] group-hover:text-[#171717]'
+                }`}>
+                  {item.label}
+                </span>
+                {isActive && (
+                  <motion.div 
+                    layoutId="nav-active"
+                    className="absolute -bottom-1 h-0.5 w-4 rounded-full bg-[#171717]" 
+                  />
+                )}
+              </div>
             </button>
           );
         })}
@@ -39,3 +52,4 @@ export default function BottomNav() {
     </div>
   );
 }
+

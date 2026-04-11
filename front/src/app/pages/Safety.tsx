@@ -1,8 +1,15 @@
+import { Phone, ShieldAlert, AlertTriangle, Info, ChevronRight, ArrowRight, ShieldCheck, HeartPulse } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import BottomNav from '../components/BottomNav';
-import { Phone, ShieldAlert, AlertTriangle, Info, ChevronRight } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { emergencyNumbers, antiScamTips, referencePrices, commonPhrases } from '../data/mockData';
+
+const reveal = {
+  initial: { opacity: 0, y: 10 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.5, ease: [0.23, 1, 0.32, 1] },
+};
 
 export default function Safety() {
   const handleCall = (number: string) => {
@@ -10,73 +17,87 @@ export default function Safety() {
   };
 
   return (
-    <div className="size-full bg-gray-50 flex flex-col pb-16">
+    <div className="min-h-screen w-full bg-[#FAFAFA] flex flex-col pb-24 font-['Inter',sans-serif] antialiased selection:bg-black selection:text-white">
       {/* Header */}
-      <div className="bg-red-600 text-white px-6 py-6">
-        <h1 className="text-2xl font-bold mb-2">Safety & Security</h1>
-        <p className="text-white/80 text-sm">Emergency contacts and travel safety tips</p>
-      </div>
+      <motion.header
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="sticky top-0 z-50 border-b border-[#F0F0F0] bg-white/80 backdrop-blur-xl"
+      >
+        <div className="px-6 py-5">
+          <h1 className="text-[22px] font-bold tracking-tight text-[#171717]">Safety & Protocols</h1>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[#737373] mt-1">
+            Global standard assistance & security
+          </p>
+        </div>
+      </motion.header>
 
-      {/* Content */}
-      <div className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto">
         <Tabs defaultValue="emergency" className="w-full">
-          <TabsList className="w-full grid grid-cols-4 bg-gray-100 p-1 m-4 rounded-xl">
-            <TabsTrigger value="emergency" className="rounded-lg text-xs">Emergency</TabsTrigger>
-            <TabsTrigger value="scams" className="rounded-lg text-xs">Anti-Scam</TabsTrigger>
-            <TabsTrigger value="prices" className="rounded-lg text-xs">Prices</TabsTrigger>
-            <TabsTrigger value="phrases" className="rounded-lg text-xs">Phrases</TabsTrigger>
-          </TabsList>
+          <div className="px-6 pt-6">
+            <TabsList className="grid w-full grid-cols-4 h-10 rounded-full bg-[#F5F5F7] p-1 border border-[#E5E5E5]">
+              <TabsTrigger value="emergency" className="rounded-full text-[10px] font-bold uppercase tracking-wider transition-all data-[state=active]:bg-white data-[state=active]:text-[#171717] data-[state=active]:shadow-sm">Help</TabsTrigger>
+              <TabsTrigger value="scams" className="rounded-full text-[10px] font-bold uppercase tracking-wider transition-all data-[state=active]:bg-white data-[state=active]:text-[#171717] data-[state=active]:shadow-sm">Alerts</TabsTrigger>
+              <TabsTrigger value="prices" className="rounded-full text-[10px] font-bold uppercase tracking-wider transition-all data-[state=active]:bg-white data-[state=active]:text-[#171717] data-[state=active]:shadow-sm">Rates</TabsTrigger>
+              <TabsTrigger value="phrases" className="rounded-full text-[10px] font-bold uppercase tracking-wider transition-all data-[state=active]:bg-white data-[state=active]:text-[#171717] data-[state=active]:shadow-sm">Speak</TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Emergency Numbers */}
-          <TabsContent value="emergency" className="px-6 pb-6 space-y-4">
-            <div className="bg-red-50 p-4 rounded-xl border border-red-200">
-              <div className="flex items-start gap-3">
-                <AlertTriangle className="h-6 w-6 text-red-600 flex-shrink-0 mt-0.5" />
+          <TabsContent value="emergency" className="px-6 py-8 outline-none space-y-8 max-w-xl mx-auto w-full">
+            <motion.div {...reveal} className="bg-white border border-[#E5E5E5] p-6 rounded-2xl shadow-sm">
+              <div className="flex items-start gap-4">
+                <div className="h-10 w-10 rounded-full bg-[#FEF2F2] border border-[#FEE2E2] flex items-center justify-center shrink-0">
+                  <HeartPulse className="h-4 w-4 text-[#EF4444]" />
+                </div>
                 <div>
-                  <h3 className="font-bold text-red-900 mb-1">In Case of Emergency</h3>
-                  <p className="text-sm text-red-700">
-                    These numbers work from anywhere in Morocco. Available 24/7.
+                  <h3 className="text-[15px] font-bold text-[#171717] mb-1">Instant Response</h3>
+                  <p className="text-[12px] leading-relaxed text-[#737373] font-medium">
+                    National emergency services are operational 24/7. These direct lines bridge immediate assistance requirements.
                   </p>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[#737373] ml-1">Universal Channels</p>
               {emergencyNumbers.map((emergency, index) => (
-                <div
+                <motion.div
                   key={index}
-                  className="bg-white border-2 border-gray-200 rounded-xl p-4 hover:border-red-600 transition-colors"
+                  {...reveal}
+                  transition={{ delay: index * 0.05 }}
+                  className="bg-white border border-[#E5E5E5] rounded-2xl p-5 shadow-sm group hover:shadow-md transition-all"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                        <ShieldAlert className="h-6 w-6 text-red-600" />
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-[#F5F5F7] border border-[#E5E5E5] rounded-full flex items-center justify-center grayscale-[10%] group-hover:grayscale-0 transition-all">
+                        <ShieldCheck className="h-5 w-5 text-[#171717]" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-gray-900">{emergency.service}</h3>
-                        <p className="text-2xl font-bold text-red-600">{emergency.number}</p>
+                        <h3 className="text-[13px] font-bold text-[#737373] uppercase tracking-wider">{emergency.service}</h3>
+                        <p className="text-[20px] font-bold text-[#171717] tracking-tighter">{emergency.number}</p>
                       </div>
                     </div>
-                    <Button
+                    <button
                       onClick={() => handleCall(emergency.number)}
-                      className="bg-red-600 hover:bg-red-700 h-12 w-12 p-0 rounded-full"
+                      className="bg-[#171717] hover:opacity-90 h-11 w-11 rounded-full flex items-center justify-center text-white transition-all active:scale-95 shadow-lg shadow-black/10"
                     >
-                      <Phone className="h-5 w-5" />
-                    </Button>
+                      <Phone className="h-4 w-4" />
+                    </button>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
 
-            <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
+            <div className="bg-[#F5F5F7] border border-[#E5E5E5] p-5 rounded-2xl">
               <div className="flex items-start gap-3">
-                <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-blue-700">
-                  <p className="font-semibold mb-1">Important Notes:</p>
-                  <ul className="space-y-1">
-                    <li>• These numbers are free to call</li>
-                    <li>• French and Arabic are commonly spoken</li>
-                    <li>• Keep your location and hotel info ready</li>
+                <Info className="h-4 w-4 text-[#171717] shrink-0 mt-0.5" />
+                <div className="text-[12px] text-[#737373] font-medium leading-relaxed">
+                  <p className="font-bold text-[#171717] mb-2 uppercase tracking-widest text-[9px]">Critical Metadata:</p>
+                  <ul className="space-y-2">
+                    <li className="flex gap-2"><span>•</span> Communication available in Arabic, French, and English</li>
+                    <li className="flex gap-2"><span>•</span> Public assistance lines are toll-free nationwide</li>
+                    <li className="flex gap-2"><span>•</span> Retain localized coordinates for dispatcher precision</li>
                   </ul>
                 </div>
               </div>
@@ -84,91 +105,65 @@ export default function Safety() {
           </TabsContent>
 
           {/* Anti-Scam Guide */}
-          <TabsContent value="scams" className="px-6 pb-6 space-y-4">
-            <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
-              <h3 className="font-bold text-yellow-900 mb-1">Stay Alert, Stay Safe</h3>
-              <p className="text-sm text-yellow-700">
-                Common tourist scams and how to avoid them
+          <TabsContent value="scams" className="px-6 py-8 outline-none space-y-8 max-w-xl mx-auto w-full">
+            <motion.div {...reveal} className="bg-white border border-[#E5E5E5] p-6 rounded-2xl shadow-sm">
+              <h3 className="text-[15px] font-bold text-[#171717] mb-1">Alert Awareness</h3>
+              <p className="text-[12px] leading-relaxed text-[#737373] font-medium">
+                Identifying common market deviations helps maintain travel integrity.
               </p>
-            </div>
+            </motion.div>
 
-            <div className="space-y-3">
-              {antiScamTips.map((tip) => (
-                <div
+            <div className="space-y-4">
+              {antiScamTips.map((tip, idx) => (
+                <motion.div
                   key={tip.id}
-                  className={`bg-white border-2 rounded-xl p-4 ${
-                    tip.severity === 'high'
-                      ? 'border-red-200'
-                      : tip.severity === 'medium'
-                      ? 'border-orange-200'
-                      : 'border-yellow-200'
-                  }`}
+                  {...reveal}
+                  transition={{ delay: idx * 0.05 }}
+                  className="bg-white border border-[#E5E5E5] rounded-2xl p-5 shadow-sm"
                 >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        tip.severity === 'high'
-                          ? 'bg-red-100'
-                          : tip.severity === 'medium'
-                          ? 'bg-orange-100'
-                          : 'bg-yellow-100'
-                      }`}
-                    >
-                      <AlertTriangle
-                        className={`h-5 w-5 ${
-                          tip.severity === 'high'
-                            ? 'text-red-600'
-                            : tip.severity === 'medium'
-                            ? 'text-orange-600'
-                            : 'text-yellow-600'
-                        }`}
-                      />
+                  <div className="flex items-start gap-4">
+                    <div className="w-9 h-9 rounded-full bg-[#F5F5F7] flex items-center justify-center shrink-0 border border-[#E5E5E5]">
+                      <AlertTriangle className={`h-4 w-4 ${tip.severity === 'high' ? 'text-red-500' : 'text-[#171717]'}`} />
                     </div>
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-bold text-gray-900">{tip.title}</h3>
-                        <span
-                          className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                            tip.severity === 'high'
-                              ? 'bg-red-100 text-red-700'
-                              : tip.severity === 'medium'
-                              ? 'bg-orange-100 text-orange-700'
-                              : 'bg-yellow-100 text-yellow-700'
-                          }`}
-                        >
-                          {tip.severity.toUpperCase()}
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-[14px] font-bold text-[#171717]">{tip.title}</h3>
+                        <span className={`text-[8px] font-bold px-2 py-0.5 rounded-full border ${
+                          tip.severity === 'high' ? 'border-red-100 bg-red-50 text-red-600' : 'border-[#E5E5E5] bg-[#F5F5F7] text-[#737373]'
+                        } uppercase tracking-widest`}>
+                          {tip.severity}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-700">{tip.description}</p>
+                      <p className="text-[12px] text-[#737373] font-medium leading-relaxed">{tip.description}</p>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </TabsContent>
 
           {/* Reference Prices */}
-          <TabsContent value="prices" className="px-6 pb-6 space-y-4">
-            <div className="bg-green-50 p-4 rounded-xl border border-green-200">
-              <h3 className="font-bold text-green-900 mb-1">Reference Prices</h3>
-              <p className="text-sm text-green-700">
-                Know the fair prices to avoid overpaying
+          <TabsContent value="prices" className="px-6 py-8 outline-none space-y-10 max-w-xl mx-auto w-full">
+            <motion.div {...reveal} className="bg-white border border-[#E5E5E5] p-6 rounded-2xl shadow-sm">
+              <h3 className="text-[15px] font-bold text-[#171717] mb-1">Value Benchmarks</h3>
+              <p className="text-[12px] leading-relaxed text-[#737373] font-medium">
+                Standard price points for daily essentials based on indexed market data.
               </p>
-            </div>
+            </motion.div>
 
             {['Beverages', 'Food', 'Transport', 'Souvenirs'].map((category) => (
-              <div key={category}>
-                <h3 className="font-bold text-gray-900 mb-3">{category}</h3>
-                <div className="space-y-2">
+              <div key={category} className="space-y-4">
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#737373] ml-1">{category}</h3>
+                <div className="grid grid-cols-1 gap-3">
                   {referencePrices
                     .filter((p) => p.category === category)
                     .map((price, index) => (
                       <div
                         key={index}
-                        className="bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between"
+                        className="bg-white border border-[#E5E5E5] rounded-xl px-4 py-3 flex items-center justify-between"
                       >
-                        <span className="text-gray-700">{price.item}</span>
-                        <span className="font-bold text-[#0D9488]">{price.price}</span>
+                        <span className="text-[13px] font-medium text-[#171717]">{price.item}</span>
+                        <span className="text-[13px] font-bold text-[#171717]">{price.price}</span>
                       </div>
                     ))}
                 </div>
@@ -177,47 +172,44 @@ export default function Safety() {
           </TabsContent>
 
           {/* Common Phrases */}
-          <TabsContent value="phrases" className="px-6 pb-6 space-y-4">
-            <div className="bg-purple-50 p-4 rounded-xl border border-purple-200">
-              <h3 className="font-bold text-purple-900 mb-1">Essential Phrases</h3>
-              <p className="text-sm text-purple-700">
-                Basic Arabic/Darija phrases for travelers
+          <TabsContent value="phrases" className="px-6 py-8 outline-none space-y-6 max-w-xl mx-auto w-full">
+            <motion.div {...reveal} className="bg-white border border-[#E5E5E5] p-6 rounded-2xl shadow-sm mb-4">
+              <h3 className="text-[15px] font-bold text-[#171717] mb-1">Local Dialogue</h3>
+              <p className="text-[12px] leading-relaxed text-[#737373] font-medium">
+                Essential Darija and Arabic linguistic markers for fluid social interaction.
               </p>
-            </div>
+            </motion.div>
 
-            <div className="space-y-2">
+            <div className="space-y-4">
               {commonPhrases.map((phrase, index) => (
-                <div
+                <motion.div
                   key={index}
-                  className="bg-white border border-gray-200 rounded-xl p-4"
+                  {...reveal}
+                  transition={{ delay: index * 0.05 }}
+                  className="bg-white border border-[#E5E5E5] rounded-2xl p-5 shadow-sm group"
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 space-y-2">
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-[9px] text-[#A3A3A3] font-bold uppercase tracking-widest mb-1">English</p>
+                      <p className="text-[15px] font-bold text-[#171717]">{phrase.english}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-6 pt-3 border-t border-[#F5F5F7]">
                       <div>
-                        <p className="text-xs text-gray-500 uppercase">English</p>
-                        <p className="font-semibold text-gray-900">{phrase.english}</p>
+                        <p className="text-[9px] text-[#A3A3A3] font-bold uppercase tracking-widest mb-1">Darija</p>
+                        <p className="text-[14px] font-bold text-[#171717]">{phrase.darija}</p>
                       </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <p className="text-xs text-gray-500 uppercase">Darija</p>
-                          <p className="font-medium text-gray-700">{phrase.darija}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-gray-500 uppercase">Arabic</p>
-                          <p className="font-medium text-gray-700 text-right" dir="rtl">{phrase.arabic}</p>
-                        </div>
+                      <div className="text-right">
+                        <p className="text-[9px] text-[#A3A3A3] font-bold uppercase tracking-widest mb-1">Arabic</p>
+                        <p className="text-[16px] font-bold text-[#171717]" dir="rtl">{phrase.arabic}</p>
                       </div>
                     </div>
-                    <button className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors flex-shrink-0">
-                      <ChevronRight className="h-4 w-4 text-gray-600" />
-                    </button>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </TabsContent>
         </Tabs>
-      </div>
+      </main>
 
       <BottomNav />
     </div>

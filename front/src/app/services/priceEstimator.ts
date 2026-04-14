@@ -1,9 +1,13 @@
+import { findMarketReference } from '../utils/priceValidation';
+
 export type Currency = {
   code: string;
   symbol: string;
   rateFromMAD?: number;
   prefix: boolean;
 };
+
+export type MarketContext = 'modern' | 'souk';
 
 export type EstimateResult = {
   name: string;
@@ -12,7 +16,9 @@ export type EstimateResult = {
   confidence: number;
   priceMin: number;
   priceMax: number;
+  suggestedPrice: number;
   currency: Currency;
+  isVerified?: boolean;
 };
 
 // IMPORTANT: Must be VITE_ prefixed to be exposed by Vite to the browser
@@ -40,7 +46,8 @@ async function fileToBase64(file: File): Promise<string> {
 export async function estimatePriceFromImage(
   file: File,
   country: string | null,
-  language: string = 'en'
+  language: string = 'en',
+  marketContext: MarketContext = 'souk'
 ): Promise<EstimateResult> {
   if (!GROQ_API_KEY) {
     throw new Error('GROQ API key is not configured. Set VITE_GROQ_API_KEY in .env');
@@ -48,20 +55,35 @@ export async function estimatePriceFromImage(
 
   const base64 = await fileToBase64(file);
 
-  const prompt = `You are a market price expert. Analyze the product in the photo.
-Consider the country context: ${country ?? 'Morocco'}. Give prices in MAD base (I will convert locally).
-CRITICAL: Translate the 'name', 'category', and 'brand' values into the language with language code '${language}'.
-Respond ONLY with a JSON object (no markdown, no explanation) like:
+  const prompt = `You are an expert on the Moroccan market and pricing. 
+Analyze the item in this image. 
+The user is currently in a ${marketContext === 'modern' ? 'MODERN SHOP / SUPERMARKET (Fixed prices)' : 'TRADITIONAL SOUK / MARKET (Bargaining expected)'}.
+
+Provide a HIGHLY ACCURATE price estimation in MAD (Moroccan Dirhams).
+
+If marketContext is 'modern':
+- 'priceMin' and 'priceMax' should be very close (fixed price).
+- 'suggestedPrice' is the retail sticker price.
+
+If marketContext is 'souk':
+- 'priceMin': The absolute minimum price for locals after heavy bargaining.
+- 'priceMax': The maximum fair price.
+- 'suggestedPrice': The target bargaining goal.
+
+CRITICAL: Translate 'name', 'category', and 'brand' to the language with code '${language}'.
+Focus on specific item quality and the ${marketContext} setting.
+
+Respond ONLY with this JSON:
 {
-  "name": "Short product name (translated)",
-  "category": "Category (translated)",
-  "brand": "Brand or 'Generic' if unknown (translated)",
-  "confidence": 0.85,
-  "priceMin": 10,
-  "priceMax": 20,
+  "name": "string",
+  "category": "string",
+  "brand": "string",
+  "confidence": 0.9,
+  "priceMin": number,
+  "priceMax": number,
+  "suggestedPrice": number,
   "currency": { "code": "MAD", "symbol": "MAD", "prefix": false }
-}
-confidence between 0-1.`;
+}`;
 
   const response = await fetch(GROQ_API_URL, {
     method: 'POST',
@@ -112,16 +134,22 @@ confidence between 0-1.`;
     confidence?: number;
     priceMin?: number;
     priceMax?: number;
+    suggestedPrice?: number;
     currency?: { code: string; symbol: string; prefix: boolean };
   };
 
+  const name = parsed.name ?? 'Unknown product';
+  const reference = findMarketReference(name);
+  
   return {
-    name: parsed.name ?? 'Unknown product',
-    category: parsed.category ?? 'General',
+    name,
+    category: reference?.item ? 'Verified Category' : (parsed.category ?? 'General'),
     brand: parsed.brand ?? 'Generic',
-    confidence: Math.min(Math.max(parsed.confidence ?? 0.75, 0), 1),
-    priceMin: parsed.priceMin ?? 0,
-    priceMax: parsed.priceMax ?? 0,
+    confidence: reference ? 1.0 : Math.min(Math.max(parsed.confidence ?? 0.75, 0), 1),
+    priceMin: reference?.priceMin ?? (parsed.priceMin ?? 0),
+    priceMax: reference?.priceMax ?? (parsed.priceMax ?? 0),
+    suggestedPrice: reference?.suggestedPrice ?? (parsed.suggestedPrice ?? parsed.priceMin ?? 0),
+    isVerified: !!reference,
     currency: parsed.currency ?? { code: 'MAD', symbol: 'MAD', prefix: false },
   };
 }

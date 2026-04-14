@@ -10,6 +10,7 @@ import {
   ChevronDown,
   RotateCcw,
   Info,
+  Orbit,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import BottomNav from '../components/BottomNav';
@@ -28,23 +29,23 @@ const reveal = {
 
 /* ─────────────────────────────────────────────
    Translation skeleton
-───────────────────────────────────────────── */
+   ───────────────────────────────────────────── */
 function TranslationSkeleton() {
   return (
-    <div className="space-y-4 mt-2">
-      <div className="flex items-center gap-2 mb-2">
-        <Skeleton className="w-5 h-5 rounded-full" />
-        <Skeleton className="w-32 h-3" />
+    <div className="space-y-6 mt-4 font-sans">
+      <div className="flex items-center gap-3 mb-2 px-1">
+        <Skeleton className="w-6 h-6 rounded-lg bg-border" />
+        <Skeleton className="w-40 h-3 bg-border" />
       </div>
-      <Card className="rounded-2xl border-[#E5E5E5] bg-white p-6 space-y-4 shadow-sm">
-        <Skeleton className="w-3/4 h-3 rounded-full" />
-        <Skeleton className="w-full h-3 rounded-full" />
-        <Skeleton className="w-5/6 h-3 rounded-full" />
-        <Skeleton className="w-2/3 h-3 rounded-full" />
+      <Card className="rounded-[2.5rem] border-border bg-card/40 p-8 space-y-6 shadow-2xl backdrop-blur-md">
+        <Skeleton className="w-3/4 h-3 rounded-full bg-border" />
+        <Skeleton className="w-full h-3 rounded-full bg-border" />
+        <Skeleton className="w-5/6 h-3 rounded-full bg-border" />
+        <Skeleton className="w-2/3 h-3 rounded-full bg-border" />
       </Card>
-      <div className="flex items-center justify-center gap-2 pt-2">
-        <div className="w-3 h-3 border-2 border-[#171717] border-t-transparent rounded-full animate-spin" />
-        <span className="text-[11px] font-bold text-[#737373] uppercase tracking-wider">Processing insight…</span>
+      <div className="flex items-center justify-center gap-3 pt-6">
+        <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+        <span className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.2em] italic">Synthesizing semantic data…</span>
       </div>
     </div>
   );
@@ -52,7 +53,7 @@ function TranslationSkeleton() {
 
 /* ─────────────────────────────────────────────
    Language selector dropdown
-───────────────────────────────────────────── */
+   ───────────────────────────────────────────── */
 function LanguagePicker({
   value,
   onChange,
@@ -76,29 +77,29 @@ function LanguagePicker({
   }, []);
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative font-sans">
       <Button
         variant="outline"
         size="sm"
         onClick={() => setOpen((v) => !v)}
-        className="flex h-9 items-center gap-2 px-3 bg-white border-[#E5E5E5] rounded-full shadow-sm text-[11px] font-bold text-[#171717] hover:bg-[#F5F5F7] transition-all"
+        className="flex h-11 items-center gap-3 px-5 bg-card border-border rounded-xl shadow-xl text-[11px] font-black text-foreground hover:bg-muted transition-all uppercase tracking-widest border-none"
       >
-        <span>{selected.flag}</span>
-        <span className="uppercase tracking-wider">{selected.nativeLabel}</span>
+        <span className="text-sm grayscale-[0.5]">{selected.flag}</span>
+        <span>{selected.nativeLabel}</span>
         <ChevronDown
-          className={`h-3 w-3 text-[#A3A3A3] transition-transform ${open ? 'rotate-180' : ''}`}
+          className={`h-4 w-4 text-accent transition-transform ${open ? 'rotate-180' : ''}`}
         />
       </Button>
 
       <AnimatePresence>
         {open && (
           <motion.div 
-            initial={{ opacity: 0, y: 5, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 5, scale: 0.95 }}
-            className="absolute right-0 top-full mt-2 z-50 w-52 bg-white border border-[#E5E5E5] rounded-2xl shadow-xl overflow-hidden"
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            className="absolute right-0 top-full mt-4 z-50 w-64 bg-background/95 backdrop-blur-3xl border border-border rounded-[2rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] overflow-hidden"
           >
-            <div className="p-1 max-h-64 overflow-y-auto no-scrollbar">
+            <div className="p-3 max-h-80 overflow-y-auto no-scrollbar space-y-1">
               {SUPPORTED_LANGUAGES.map((lang) => (
                 <button
                   key={lang.code}
@@ -106,19 +107,19 @@ function LanguagePicker({
                     onChange(lang.code);
                     setOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
+                  className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl text-left transition-all ${
                     lang.code === value
-                      ? 'bg-[#F5F5F7] text-[#171717] font-bold'
-                      : 'text-[#737373] hover:bg-[#F5F5F7]'
+                      ? 'bg-foreground text-background font-black'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                   }`}
                 >
-                  <span className="text-sm">{lang.flag}</span>
-                  <div>
-                    <div className="text-[12px] font-bold">{lang.nativeLabel}</div>
-                    <div className="text-[10px] font-medium opacity-60">{lang.label}</div>
+                  <span className="text-lg grayscale-[0.4]">{lang.flag}</span>
+                  <div className="min-w-0">
+                    <div className="text-[12px] font-black uppercase tracking-tight">{lang.nativeLabel}</div>
+                    <div className="text-[10px] font-bold opacity-60 uppercase tracking-widest">{lang.label}</div>
                   </div>
                   {lang.code === value && (
-                    <Check className="h-3.5 w-3.5 ml-auto text-[#171717]" />
+                    <Check className="h-4 w-4 ml-auto" />
                   )}
                 </button>
               ))}
@@ -132,7 +133,7 @@ function LanguagePicker({
 
 /* ─────────────────────────────────────────────
    Translation result card
-───────────────────────────────────────────── */
+   ───────────────────────────────────────────── */
 function TranslationCard({
   translation,
   targetLang,
@@ -148,39 +149,39 @@ function TranslationCard({
   const isRTL = targetLang === 'ar';
 
   return (
-    <Card className="relative rounded-2xl overflow-hidden border-[#E5E5E5] bg-white shadow-sm transition-all hover:shadow-md">
+    <Card className="relative rounded-[2.5rem] overflow-hidden border-border bg-card/40 shadow-2xl transition-all hover:bg-card/60 backdrop-blur-md group">
       {/* Header */}
-      <div className="border-b border-[#F5F5F7] px-6 py-4 flex items-center justify-between bg-white/50">
-        <div className="flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-[#171717]" />
-          <span className="text-[11px] font-bold text-[#171717] uppercase tracking-wider">
-            {lang ? `${lang.flag} ${lang.label}` : 'Translation'}
+      <div className="border-b border-border px-8 py-5 flex items-center justify-between bg-foreground/5">
+        <div className="flex items-center gap-3">
+          <Sparkles className="h-4 w-4 text-accent" />
+          <span className="text-[11px] font-black text-foreground uppercase tracking-[0.2em] italic">
+            {lang ? `${lang.label} Output` : 'Translation Protocol'}
           </span>
         </div>
         <Button
           size="sm"
           variant="secondary"
           onClick={onCopy}
-          className="flex h-8 items-center gap-1.5 bg-[#F5F5F7] hover:bg-white border border-[#E5E5E5] text-[#171717] text-[10px] font-bold px-4 rounded-full transition-all"
+          className="flex h-9 items-center gap-2 bg-background border border-border text-foreground text-[10px] font-black px-5 rounded-xl transition-all hover:bg-foreground hover:text-background uppercase tracking-widest border-none"
         >
           {copied ? (
             <>
-              <Check className="h-3 w-3" />
-              Copied
+              <Check className="h-3.5 w-3.5 text-accent" />
+              Cached
             </>
           ) : (
             <>
-              <Copy className="h-3 w-3" />
-              Copy
+              <Copy className="h-3.5 w-3.5" />
+              Extract
             </>
           )}
         </Button>
       </div>
 
       {/* Body */}
-      <div className="px-6 py-8 bg-[#FAFAFA]">
+      <div className="px-8 py-10">
         <p
-          className="text-[#171717] text-[16px] leading-relaxed whitespace-pre-wrap font-medium"
+          className="text-foreground text-[18px] leading-[1.6] whitespace-pre-wrap font-bold selection:bg-accent selection:text-white"
           dir={isRTL ? 'rtl' : 'ltr'}
           lang={targetLang}
           style={{ fontFamily: isRTL ? "'Noto Sans Arabic', sans-serif" : undefined }}
@@ -188,13 +189,17 @@ function TranslationCard({
           {translation}
         </p>
       </div>
+      
+      <div className="absolute bottom-4 right-8 opacity-20 group-hover:opacity-40 transition-opacity">
+        <div className="text-[8px] font-black uppercase tracking-[0.4em] text-foreground">Semantic Integrity: 100%</div>
+      </div>
     </Card>
   );
 }
 
 /* ─────────────────────────────────────────────
    Main OCRTranslator page
-───────────────────────────────────────────── */
+   ───────────────────────────────────────────── */
 export default function OCRTranslator() {
   const navigate = useNavigate();
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
@@ -229,14 +234,14 @@ export default function OCRTranslator() {
 
       const text = data.text?.trim() ?? '';
       if (!text) {
-        toast.error('No text detected. Ensure the image is clear.');
+        toast.error('Zero intelligence detected. Focus on clarity.');
         setIsProcessing(false);
         return;
       }
       setExtractedText(text);
     } catch (error) {
       console.error(error);
-      toast.error('Processing failed');
+      toast.error('Matrix processing failure');
       setIsProcessing(false);
     }
   };
@@ -251,11 +256,11 @@ export default function OCRTranslator() {
         const result = await translateText(extractedText, targetLang);
         if (isMounted) {
           setTranslation(result);
-          toast.success('Translation ready');
+          toast.success('Semantic synthesis complete');
         }
       } catch (error) {
         console.error(error);
-        if (isMounted) toast.error('Translation failed');
+        if (isMounted) toast.error('Linguistic relay error');
       } finally {
         if (isMounted) setIsProcessing(false);
       }
@@ -279,7 +284,7 @@ export default function OCRTranslator() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error('Unable to copy');
+      toast.error('Registry access denied');
     }
   };
 
@@ -292,51 +297,52 @@ export default function OCRTranslator() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#FAFAFA] flex flex-col font-sans antialiased text-[#171717]">
+    <div className="min-h-screen w-full bg-background flex flex-col font-sans antialiased text-foreground transition-colors duration-500 overflow-x-hidden">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-[#E5E5E5] bg-white/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-[100] border-b border-border bg-background/80 backdrop-blur-3xl">
         <div className="px-6 py-6 max-w-xl mx-auto w-full">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-8">
             <Button 
               variant="outline"
               size="icon"
               onClick={() => navigate(-1)} 
-              className="h-9 w-9 rounded-full bg-[#F5F5F7] border-[#E5E5E5] text-[#171717] hover:bg-white transition-all shadow-sm"
+              className="h-11 w-11 rounded-2xl bg-secondary border-border text-foreground hover:bg-foreground hover:text-background transition-all shadow-xl active:scale-90"
             >
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="h-5 w-5" />
             </Button>
             <LanguagePicker value={targetLang} onChange={setTargetLang} />
           </div>
           
-          <div className="flex items-center gap-4">
-            <div className="h-12 w-12 bg-[#171717] rounded-2xl flex items-center justify-center shadow-lg shadow-black/10">
-              <Camera className="h-6 w-6 text-white" />
+          <div className="flex items-center gap-5">
+            <div className="h-14 w-14 bg-foreground text-background rounded-[1.25rem] flex items-center justify-center shadow-2xl shadow-foreground/20 rotate-3 group-hover:rotate-0 transition-transform">
+              <Camera className="h-7 w-7" />
             </div>
             <div>
-              <h1 className="text-[18px] font-bold tracking-tight">Insight Translator</h1>
-              <p className="text-[10px] font-bold text-[#737373] uppercase tracking-widest leading-none mt-0.5">Automated Intelligence</p>
+              <h1 className="text-[22px] font-black tracking-tighter uppercase italic underline decoration-accent decoration-3 underline-offset-4 decoration-dashed">Insight Neural</h1>
+              <p className="text-[10px] font-black text-accent uppercase tracking-[0.4em] leading-none mt-2">Neural Extraction Node 0.2</p>
             </div>
           </div>
         </div>
       </header>
 
       {/* Content */}
-      <main className="flex-1 overflow-auto px-6 py-8 space-y-8 max-w-xl mx-auto w-full pb-24">
+      <main className="flex-1 overflow-auto px-6 py-10 space-y-10 max-w-xl mx-auto w-full pb-32">
 
         {/* Tip banner */}
         {!image && (
           <motion.div {...reveal}>
-            <Card className="bg-white p-5 rounded-2xl border-[#E5E5E5] shadow-sm">
-              <div className="flex items-start gap-4">
-                <div className="h-8 w-8 rounded-full bg-[#F5F5F7] border border-[#E5E5E5] flex items-center justify-center shrink-0">
-                   <Info className="h-4 w-4 text-[#171717]" />
+            <Card className="bg-card/40 p-6 rounded-[2rem] border-border shadow-2xl backdrop-blur-md relative overflow-hidden group">
+              <div className="absolute top-0 right-0 h-20 w-20 bg-accent/5 blur-2xl rounded-full" />
+              <div className="flex items-start gap-5 relative z-10">
+                <div className="h-10 w-10 rounded-xl bg-secondary border border-border flex items-center justify-center shrink-0 text-accent">
+                   <Orbit className="h-5 w-5" />
                 </div>
-                <div className="space-y-2 pt-1">
-                  <h3 className="font-bold text-[#171717] text-[13px] uppercase tracking-wider">Protocol Guidance</h3>
-                  <ul className="text-[12px] text-[#737373] leading-relaxed space-y-1.5 font-medium">
-                    <li className="flex items-center gap-2">• Capture menu or signage clearly</li>
-                    <li className="flex items-center gap-2">• Automated OCR extraction starting</li>
-                    <li className="flex items-center gap-2">• Near-instant context translation</li>
+                <div className="space-y-3 pt-1">
+                  <h3 className="font-black text-foreground text-[13px] uppercase tracking-[0.2em] italic">Calibration Guidance</h3>
+                  <ul className="text-[12px] text-muted-foreground leading-relaxed space-y-2 font-bold uppercase italic tracking-wider opacity-80">
+                    <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-accent" /> Scan high-contrast text structures</li>
+                    <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-accent" /> Automated OCR matrix activation</li>
+                    <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-accent" /> Instant semantic relay enabled</li>
                   </ul>
                 </div>
               </div>
@@ -346,15 +352,15 @@ export default function OCRTranslator() {
 
         {/* Capture / Upload */}
         {!image ? (
-          <motion.div {...reveal} transition={{ delay: 0.1 }} className="space-y-6">
+          <motion.div {...reveal} transition={{ delay: 0.1 }} className="space-y-10">
             <Button
               onClick={() => cameraInputRef.current?.click()}
-              className="w-full h-44 bg-[#171717] hover:bg-[#171717]/90 rounded-3xl flex flex-col items-center justify-center gap-4 shadow-xl shadow-black/5 text-white transition-all transform active:scale-[0.99]"
+              className="w-full h-56 bg-foreground hover:bg-accent rounded-[3rem] flex flex-col items-center justify-center gap-5 shadow-[0_45px_100px_-20px_rgba(0,0,0,0.3)] text-background hover:text-white transition-all transform active:scale-[0.98] border-none group"
             >
-              <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-sm">
-                <Camera className="h-8 w-8" />
+              <div className="bg-background/10 p-5 rounded-3xl backdrop-blur-sm group-hover:scale-110 transition-transform">
+                <Camera className="h-10 w-10" />
               </div>
-              <span className="text-[13px] font-bold uppercase tracking-[0.2em] pt-1">Capture Sight</span>
+              <span className="text-[14px] font-black uppercase tracking-[0.3em]">Initialize View</span>
             </Button>
             <input
               ref={cameraInputRef}
@@ -367,20 +373,20 @@ export default function OCRTranslator() {
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-[#E5E5E5]" />
+                <div className="w-full border-t border-border border-dashed" />
               </div>
               <div className="relative flex justify-center text-[10px]">
-                <span className="bg-[#FAFAFA] px-4 font-bold text-[#737373] uppercase tracking-[0.2em]">Synchronization</span>
+                <span className="bg-background px-6 font-black text-muted-foreground uppercase tracking-[0.4em] italic">Telemetry Relay</span>
               </div>
             </div>
 
             <Button
               variant="outline"
               onClick={() => uploadInputRef.current?.click()}
-              className="w-full h-16 rounded-2xl border-dashed border-[#E5E5E5] bg-white hover:bg-[#F5F5F7] hover:border-[#171717]/30 flex items-center justify-center gap-3 transition-all"
+              className="w-full h-20 rounded-[1.5rem] border-dashed border-border bg-card/40 hover:bg-card hover:border-accent flex items-center justify-center gap-4 transition-all shadow-xl backdrop-blur-sm group border-none"
             >
-              <Upload className="h-5 w-5 text-[#737373]" />
-              <span className="text-[11px] font-bold text-[#737373] uppercase tracking-widest">Reference Archive</span>
+              <Upload className="h-6 w-6 text-accent group-hover:-translate-y-1 transition-transform" />
+              <span className="text-[12px] font-black text-foreground uppercase tracking-[0.25em] italic">Inject Artifact</span>
             </Button>
             <input
               ref={uploadInputRef}
@@ -390,23 +396,25 @@ export default function OCRTranslator() {
               onChange={handleFileChange}
             />
 
-            <p className="text-center text-[10px] font-bold text-[#A3A3A3] uppercase tracking-[0.3em] pt-4">
-              Real-time Global Language Interpretation
-            </p>
+            <div className="flex items-center justify-center gap-4 opacity-30 pt-4">
+              <div className="h-[2px] w-6 bg-accent" />
+              <p className="text-[9px] font-black text-foreground uppercase tracking-[0.5em] italic">Universal Neural Bridge</p>
+              <div className="h-[2px] w-6 bg-accent" />
+            </div>
           </motion.div>
 
         ) : (
 
           /* Result UI */
-          <div className="space-y-8">
+          <div className="space-y-12">
             <motion.div 
               {...reveal}
-              className="relative rounded-3xl overflow-hidden bg-[#F5F5F7] border border-[#E5E5E5] aspect-video shadow-lg group shadow-black/5"
+              className="relative rounded-[3rem] overflow-hidden bg-card border border-border aspect-video shadow-[0_45px_100px_-20px_rgba(0,0,0,0.2)] group"
             >
               <img
                 src={image}
                 alt="Captured Source"
-                className="absolute inset-0 size-full object-contain grayscale-[20%]"
+                className="absolute inset-0 size-full object-contain grayscale-[0.3] hover:grayscale-0 transition-all duration-700"
               />
               <AnimatePresence>
                 {isProcessing && (
@@ -414,21 +422,25 @@ export default function OCRTranslator() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="absolute inset-0 bg-black/5 backdrop-blur-[4px] flex items-center justify-center"
+                    className="absolute inset-0 bg-background/20 backdrop-blur-[10px] flex items-center justify-center"
                   >
-                    <div className="bg-white border border-[#E5E5E5] rounded-full px-6 py-3 flex items-center gap-3 shadow-2xl">
-                      <div className="w-3.5 h-3.5 border-2 border-[#171717] border-t-transparent rounded-full animate-spin" />
-                      <span className="text-[12px] font-bold text-[#171717] uppercase tracking-widest">Analyzing Pattern…</span>
+                    <div className="bg-background border border-border rounded-[2rem] px-8 py-5 flex items-center gap-5 shadow-2xl">
+                      <div className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+                      <span className="text-[12px] font-black text-foreground uppercase tracking-[0.3em] italic">Resolving Neural Pattern…</span>
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
+              
+              <div className="absolute top-6 left-8 px-4 py-1.5 rounded-full bg-background/60 backdrop-blur-md border border-white/20 text-[9px] font-black uppercase tracking-widest text-foreground shadow-2xl">
+                Source Artifact Alpha
+              </div>
             </motion.div>
 
             {isProcessing ? (
               <TranslationSkeleton />
             ) : translation ? (
-              <motion.div {...reveal} className="space-y-6">
+              <motion.div {...reveal} className="space-y-10">
                 <TranslationCard
                   translation={translation}
                   targetLang={targetLang}
@@ -438,29 +450,29 @@ export default function OCRTranslator() {
                 <Button
                   variant="outline"
                   onClick={handleReset}
-                  className="w-full h-13 rounded-2xl border-[#E5E5E5] bg-white text-[#171717] text-[12px] font-bold flex items-center justify-center gap-2 hover:bg-[#F5F5F7] transition-all py-6 active:scale-[0.99]"
+                  className="w-full h-16 rounded-[1.5rem] border-border bg-card/60 text-foreground text-[12px] font-black flex items-center justify-center gap-3 hover:bg-foreground hover:text-background transition-all shadow-2xl active:scale-[0.98] uppercase tracking-widest border-none"
                 >
-                  <RotateCcw className="h-4 w-4" /> New Interpretation
+                  <RotateCcw className="h-5 w-5" /> Flush & Reset Matrix
                 </Button>
               </motion.div>
             ) : (
-              <motion.div {...reveal} className="rounded-3xl border border-[#E5E5E5] bg-white p-10 text-center space-y-6 shadow-sm border-dashed">
-                <div className="h-14 w-14 rounded-full bg-[#F5F5F7] flex items-center justify-center mx-auto text-[#737373]">
-                   <Info className="h-7 w-7" />
+              <motion.div {...reveal} className="rounded-[3rem] border-2 border-border border-dashed bg-card/20 p-12 text-center space-y-8 shadow-2xl backdrop-blur-sm">
+                <div className="h-16 w-16 rounded-[1.5rem] bg-secondary border border-border flex items-center justify-center mx-auto text-accent shadow-xl">
+                   <Info className="h-8 w-8" />
                 </div>
-                <div className="space-y-2">
-                  <p className="text-[14px] font-bold text-[#171717] uppercase tracking-widest">
-                    Extraction Fault
+                <div className="space-y-3">
+                  <p className="text-[16px] font-black text-foreground uppercase tracking-[0.2em] italic underline decoration-rose-500 decoration-3">
+                    Linguistic Breach
                   </p>
-                  <p className="text-[12px] text-[#737373] leading-relaxed max-w-[220px] mx-auto font-medium">
-                     No readable text detected from source. Ensure sharpness and lighting conditions.
+                  <p className="text-[13px] text-muted-foreground leading-relaxed max-w-[260px] mx-auto font-bold uppercase tracking-tight opacity-70">
+                     Neural sensors failed to extract valid semantic data from the artifact.
                   </p>
                 </div>
                 <Button
                   onClick={handleReset}
-                  className="h-11 rounded-full px-8 text-[11px] font-bold uppercase tracking-widest gap-2 bg-[#171717] text-white hover:opacity-90 transition-all shadow-lg shadow-black/10"
+                  className="h-14 rounded-2xl px-10 text-[12px] font-black uppercase tracking-[0.2em] gap-3 bg-foreground text-background hover:bg-accent hover:text-white transition-all shadow-2xl border-none active:scale-95"
                 >
-                  <RotateCcw className="h-3.5 w-3.5" /> Re-attempt Capture
+                  <RotateCcw className="h-4 w-4" /> Recalibrate Sensor
                 </Button>
               </motion.div>
             )}
@@ -468,8 +480,12 @@ export default function OCRTranslator() {
         )}
       </main>
 
+      <div className="pointer-events-none fixed inset-0 z-0">
+        <div className="absolute top-[20%] right-[-10%] w-[50%] h-[50%] bg-blue-500/5 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[20%] left-[-10%] w-[50%] h-[50%] bg-accent/5 blur-[120px] rounded-full" />
+      </div>
+
       <BottomNav />
     </div>
   );
 }
-

@@ -1,19 +1,21 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { ArrowLeft, CalendarPlus, Car, Send, UserRound } from 'lucide-react';
+import { ArrowLeft, CalendarPlus, Car, Send, UserRound, MapPin, Globe, CreditCard } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { useAppContext } from '../context/AppContext';
+import { motion } from 'framer-motion';
 
 const formConfig = {
   activity: {
     title: 'Create Activity',
-    subtitle: 'Publiez une activite pour rencontrer des voyageurs dans votre ville.',
+    subtitle: 'Share an experience with fellow travelers.',
     icon: CalendarPlus,
-    submitLabel: 'Publier',
+    accent: 'emerald',
+    submitLabel: 'Publish Activity',
     fields: {
       roleLabel: 'Organizer name',
       expertiseLabel: 'Activity title',
@@ -25,9 +27,10 @@ const formConfig = {
   },
   guide: {
     title: 'Join As Guide',
-    subtitle: 'Inscrivez-vous comme guide local et recevez des demandes dans votre ville.',
+    subtitle: 'Share your local knowledge as a certified guide.',
     icon: UserRound,
-    submitLabel: 'Envoyer ma candidature',
+    accent: 'slate',
+    submitLabel: 'Submit Application',
     fields: {
       roleLabel: 'Full name',
       expertiseLabel: 'Specialty',
@@ -39,9 +42,10 @@ const formConfig = {
   },
   driver: {
     title: 'Join As Driver',
-    subtitle: 'Inscrivez-vous comme chauffeur disponible pour les visiteurs.',
+    subtitle: 'Earn as a reliable driver for visitors.',
     icon: Car,
-    submitLabel: 'Envoyer ma candidature',
+    accent: 'slate',
+    submitLabel: 'Start Registration',
     fields: {
       roleLabel: 'Full name',
       expertiseLabel: 'Vehicle type',
@@ -56,7 +60,7 @@ const formConfig = {
 export default function ApplyForm() {
   const navigate = useNavigate();
   const { type } = useParams();
-  const { authMode, city, exploreMode } = useAppContext();
+  const { authMode, city, exploreMode, submitDriverRegistration } = useAppContext();
   const [form, setForm] = useState({
     fullName: '',
     city: city || 'Marrakech',
@@ -86,139 +90,189 @@ export default function ApplyForm() {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    
+    if (type === 'driver') {
+      submitDriverRegistration({
+        fullName: form.fullName,
+        phone: form.phone,
+        vehicleType: form.expertise,
+        city: form.city,
+      });
+      toast.success('Registration saved. Let\'s verify your identity.');
+      navigate('/driver/verify');
+      return;
+    }
+
     toast.success(`${config.title} submitted successfully`);
     navigate(type === 'activity' ? '/community' : type === 'guide' ? '/guide' : '/transport');
   };
 
   return (
-    <div className="size-full bg-gray-50 flex flex-col pb-16">
-      <div className="bg-[#0D9488] px-6 py-6 text-white">
-        <button onClick={() => navigate(-1)} className="mb-4 flex items-center gap-2 text-sm text-white/90 hover:text-white">
-          <ArrowLeft className="h-4 w-4" />
+    <div className="min-h-screen bg-background flex flex-col pb-20 selection:bg-accent/10 transition-colors duration-500">
+      {/* Dynamic Header */}
+      <div className="relative overflow-hidden bg-foreground px-6 py-12 text-background transition-colors duration-500">
+        <div className="absolute top-0 right-0 size-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        
+        <motion.button 
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          onClick={() => navigate(-1)} 
+          className="relative mb-8 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-background/60 hover:text-background transition-colors"
+        >
+          <ArrowLeft className="h-3 w-3" />
           Back
-        </button>
+        </motion.button>
 
-        <div className="flex items-start gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20">
-            <Icon className="h-6 w-6" />
-          </div>
+        <div className="relative flex items-center gap-5">
+          <motion.div 
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="flex h-16 w-16 items-center justify-center rounded-[1.5rem] bg-background/10 backdrop-blur-md border border-background/20 shadow-2xl"
+          >
+            <Icon className="h-8 w-8" />
+          </motion.div>
           <div>
-            <h1 className="mb-2 text-2xl font-bold">{config.title}</h1>
-            <p className="text-sm text-white/80">
-              {exploreMode === 'city' && city ? `${config.subtitle} Ville actuelle: ${city}.` : config.subtitle}
-            </p>
+            <motion.h1 
+              initial={{ y: 10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              className="text-3xl font-black tracking-tight uppercase"
+            >
+              {config.title}
+            </motion.h1>
+            <motion.p 
+              initial={{ y: 10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.1 }}
+              className="text-[10px] font-black uppercase tracking-widest text-background/50 mt-1"
+            >
+              {exploreMode === 'city' && city ? `${config.subtitle} • ${city}` : config.subtitle}
+            </motion.p>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto px-6 py-6">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">{config.fields.roleLabel}</label>
-              <Input
-                value={form.fullName}
-                onChange={(e) => setForm((current) => ({ ...current, fullName: e.target.value }))}
-                placeholder={type === 'activity' ? 'Organizer name' : 'Your full name'}
-                className="h-11 rounded-xl"
-                required
-              />
+      <div className="flex-1 -mt-8 relative z-10 px-6">
+        <motion.div 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="bg-card rounded-[2.5rem] p-8 shadow-2xl border border-border"
+        >
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-6">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Basic Information</h3>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">{config.fields.roleLabel}</label>
+                  <Input
+                    value={form.fullName}
+                    onChange={(e) => setForm((current) => ({ ...current, fullName: e.target.value }))}
+                    placeholder="e.g. John Doe"
+                    className="h-14 rounded-2xl bg-secondary border-transparent focus:bg-card focus:border-border transition-all font-bold"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Current City</label>
+                  <div className="relative">
+                    <Input
+                      value={form.city}
+                      onChange={(e) => setForm((current) => ({ ...current, city: e.target.value }))}
+                      placeholder="e.g. Marrakech"
+                      className="h-14 rounded-2xl bg-secondary border-transparent focus:bg-card focus:border-border transition-all font-bold pl-11"
+                      required
+                    />
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Email Contact</label>
+                  <Input
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => setForm((current) => ({ ...current, email: e.target.value }))}
+                    placeholder="name@example.com"
+                    className="h-14 rounded-2xl bg-secondary border-transparent focus:bg-card focus:border-border transition-all font-bold"
+                    required
+                  />
+                </div>
+              </div>
+
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground pt-4">Professional Details</h3>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">{config.fields.expertiseLabel}</label>
+                  <div className="relative">
+                    <Input
+                      value={form.expertise}
+                      onChange={(e) => setForm((current) => ({ ...current, expertise: e.target.value }))}
+                      placeholder={config.fields.expertiseLabel}
+                      className="h-14 rounded-2xl bg-secondary border-transparent focus:bg-card focus:border-border transition-all font-bold pl-11"
+                      required
+                    />
+                    <Globe className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">{config.fields.priceLabel}</label>
+                  <div className="relative">
+                    <Input
+                      value={form.price}
+                      onChange={(e) => setForm((current) => ({ ...current, price: e.target.value }))}
+                      placeholder="e.g. 50"
+                      className="h-14 rounded-2xl bg-secondary border-transparent focus:bg-card focus:border-border transition-all font-bold pl-11"
+                    />
+                    <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">{config.fields.availabilityLabel}</label>
+                  <Input
+                    value={form.availability}
+                    onChange={(e) => setForm((current) => ({ ...current, availability: e.target.value }))}
+                    placeholder="e.g. Flexible / Night / Day"
+                    className="h-14 rounded-2xl bg-secondary border-transparent focus:bg-card focus:border-border transition-all font-bold"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">{config.fields.extraLabel}</label>
+                  <Input
+                    value={form.extra}
+                    onChange={(e) => setForm((current) => ({ ...current, extra: e.target.value }))}
+                    placeholder="e.g. English, French, Arabic"
+                    className="h-14 rounded-2xl bg-secondary border-transparent focus:bg-card focus:border-border transition-all font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2 pt-4">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">{config.fields.noteLabel}</label>
+                <Textarea
+                  value={form.notes}
+                  onChange={(e) => setForm((current) => ({ ...current, notes: e.target.value }))}
+                  placeholder="Share a bit more about your experience..."
+                  className="min-h-32 rounded-2xl bg-secondary border-transparent focus:bg-card focus:border-border transition-all font-bold p-4"
+                  required
+                />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">City</label>
-              <Input
-                value={form.city}
-                onChange={(e) => setForm((current) => ({ ...current, city: e.target.value }))}
-                placeholder="City"
-                className="h-11 rounded-xl"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Phone</label>
-              <Input
-                value={form.phone}
-                onChange={(e) => setForm((current) => ({ ...current, phone: e.target.value }))}
-                placeholder="+212 ..."
-                className="h-11 rounded-xl"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Email</label>
-              <Input
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm((current) => ({ ...current, email: e.target.value }))}
-                placeholder="name@email.com"
-                className="h-11 rounded-xl"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">{config.fields.expertiseLabel}</label>
-              <Input
-                value={form.expertise}
-                onChange={(e) => setForm((current) => ({ ...current, expertise: e.target.value }))}
-                placeholder={config.fields.expertiseLabel}
-                className="h-11 rounded-xl"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">{config.fields.priceLabel}</label>
-              <Input
-                value={form.price}
-                onChange={(e) => setForm((current) => ({ ...current, price: e.target.value }))}
-                placeholder={config.fields.priceLabel}
-                className="h-11 rounded-xl"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">{config.fields.availabilityLabel}</label>
-              <Input
-                value={form.availability}
-                onChange={(e) => setForm((current) => ({ ...current, availability: e.target.value }))}
-                placeholder={config.fields.availabilityLabel}
-                className="h-11 rounded-xl"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">{config.fields.extraLabel}</label>
-              <Input
-                value={form.extra}
-                onChange={(e) => setForm((current) => ({ ...current, extra: e.target.value }))}
-                placeholder={config.fields.extraLabel}
-                className="h-11 rounded-xl"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">{config.fields.noteLabel}</label>
-            <Textarea
-              value={form.notes}
-              onChange={(e) => setForm((current) => ({ ...current, notes: e.target.value }))}
-              placeholder={config.fields.noteLabel}
-              className="min-h-32 rounded-xl"
-              required
-            />
-          </div>
-
-          <Button type="submit" className="h-12 w-full rounded-xl bg-[#0D9488] hover:bg-[#0D9488]/90">
-            {config.submitLabel}
-            <Send className="ml-2 h-4 w-4" />
-          </Button>
+            <Button 
+                type="submit" 
+                className="h-16 w-full rounded-2xl bg-foreground hover:bg-accent text-background font-black uppercase tracking-widest text-xs shadow-xl shadow-foreground/10 active:scale-[0.98] transition-all flex items-center justify-center gap-3"
+            >
+              {config.submitLabel}
+              <Send className="h-4 w-4" />
+            </Button>
         </form>
-      </div>
+      </motion.div>
+    </div>
 
       <BottomNav />
     </div>

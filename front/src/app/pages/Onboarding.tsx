@@ -4,30 +4,31 @@ import { ChevronRight, Compass, ShieldCheck, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../components/ui/button';
 import { useTranslation } from 'react-i18next';
+import { hapticFeedback } from '../components/ui/utils';
 import img1 from '../../assets/b936e34de051bc299deaad6dc888364043138630.png';
 
 const slideMeta = [
-  { icon: Sparkles, eyebrow: 'Luxury Curation', accent: 'from-cyan-500 via-sky-500 to-blue-100' },
-  { icon: Compass, eyebrow: 'Smart Navigation', accent: 'from-teal-500 via-cyan-500 to-cyan-200' },
-  { icon: ShieldCheck, eyebrow: 'Trust & Comfort', accent: 'from-sky-700 via-cyan-600 to-blue-200' },
+  { icon: Sparkles, eyebrow: 'Luxury Curation', accent: 'from-orange-500/20 via-orange-500/10 to-transparent', glow: 'shadow-orange-500/20' },
+  { icon: Compass, eyebrow: 'Smart Navigation', accent: 'from-blue-500/20 via-blue-500/10 to-transparent', glow: 'shadow-blue-500/20' },
+  { icon: ShieldCheck, eyebrow: 'Trust & Comfort', accent: 'from-emerald-500/20 via-emerald-500/10 to-transparent', glow: 'shadow-emerald-500/20' },
 ];
 
 const getSlides = (t: any) => [
   {
-    title: t('onboarding.slide1Title'),
-    description: t('onboarding.slide1Desc'),
+    title: t('onboarding.slide1Title', 'Signature Voyages'),
+    description: t('onboarding.slide1Desc', 'Discover curated journeys tailored to your style.'),
     image: img1,
     kicker: 'Voyages signatures',
   },
   {
-    title: t('onboarding.slide2Title'),
-    description: t('onboarding.slide2Desc'),
+    title: t('onboarding.slide2Title', 'Fluid Movements'),
+    description: t('onboarding.slide2Desc', 'Seamless navigation through every destination.'),
     image: img1,
     kicker: 'Mouvements fluides',
   },
   {
-    title: t('onboarding.slide3Title'),
-    description: t('onboarding.slide3Desc'),
+    title: t('onboarding.slide3Title', 'Local Serenity'),
+    description: t('onboarding.slide3Desc', 'Safety and comfort at every experience.'),
     image: img1,
     kicker: 'Serenite sur place',
   },
@@ -36,6 +37,7 @@ const getSlides = (t: any) => [
 export default function Onboarding() {
   const { t } = useTranslation();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [direction, setDirection] = useState(1);
   const navigate = useNavigate();
 
   const slides = getSlides(t);
@@ -43,67 +45,145 @@ export default function Onboarding() {
   const Icon = meta.icon;
 
   const handleNext = () => {
+    hapticFeedback('light');
     if (currentSlide < slides.length - 1) {
+      setDirection(1);
       setCurrentSlide((value) => value + 1);
       return;
     }
-
     navigate('/language');
   };
 
+  const handleSkip = () => {
+    hapticFeedback('light');
+    navigate('/language');
+  };
+
+  const slideVariants = {
+    enter: (dir: number) => ({
+      opacity: 0,
+      scale: 0.92,
+      y: dir > 0 ? 40 : -40,
+    }),
+    center: {
+      opacity: 1,
+      scale: 1,
+      y: 0,
+    },
+    exit: (dir: number) => ({
+      opacity: 0,
+      scale: 1.08,
+      y: dir > 0 ? -40 : 40,
+    }),
+  };
+
   return (
-    <div className="tourism-bg size-full overflow-hidden">
+    <div className="min-h-screen w-full bg-background overflow-hidden relative transition-colors duration-500">
+      {/* Animated Background */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="tourism-blob tourism-blob-1" />
-        <div className="tourism-blob tourism-blob-2" />
-        <div className="tourism-grid absolute inset-0 opacity-40" />
+        <motion.div
+          animate={{
+            scale: [1, 1.1, 1],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-accent/5 blur-[120px] rounded-full"
+        />
+        <motion.div
+          animate={{
+            scale: [1.1, 1, 1.1],
+            opacity: [0.4, 0.6, 0.4],
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+          className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-500/5 blur-[120px] rounded-full"
+        />
       </div>
 
-      <div className="relative flex h-full flex-col px-5 pb-6 pt-6">
-        <div className="flex items-center justify-between">
-          <div className="tourism-pill text-[11px] uppercase tracking-[0.25em] text-slate-700">Navito Journey</div>
-          <button onClick={() => navigate('/language')} className="text-sm font-semibold text-slate-600 transition hover:text-slate-900">
-            {t('common.skip')}
-          </button>
+      <div className="relative flex h-full flex-col px-5 pb-10 pt-12 max-w-xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="px-4 py-2 rounded-full bg-secondary/80 backdrop-blur-xl border border-border/50 text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground shadow-lg"
+          >
+            Navito
+          </motion.div>
+          <motion.button
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            onClick={handleSkip}
+            className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground transition-all hover:text-foreground active:scale-95 px-4 py-2 rounded-full hover:bg-secondary/50"
+          >
+            {t('common.skip', 'Skip')}
+          </motion.button>
         </div>
 
-        <div className="flex flex-1 flex-col justify-center py-6">
-          <AnimatePresence mode="wait">
+        {/* Main Slide Content */}
+        <div className="flex flex-1 flex-col justify-center py-4">
+          <AnimatePresence custom={direction} mode="wait">
             <motion.div
               key={currentSlide}
-              initial={{ opacity: 0, y: 26 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -18 }}
-              transition={{ duration: 0.55, ease: [0.2, 1, 0.3, 1] }}
-              className="mx-auto w-full max-w-md"
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.5, ease: [0.25, 1, 0.5, 1] }}
+              className="w-full"
             >
-              <div className="tourism-editorial-card overflow-hidden rounded-[36px] p-4">
-                <div className={`relative overflow-hidden rounded-[30px] bg-gradient-to-br ${meta.accent} p-[1px]`}>
-                  <div className="relative overflow-hidden rounded-[29px] bg-[#f0f9ff]">
-                    <img src={slides[currentSlide].image} alt={slides[currentSlide].title} className="h-[350px] w-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#08131fcc] via-[#08131f3d] to-transparent" />
+              <div className="relative overflow-hidden rounded-[2.5rem] bg-card border border-border/50 shadow-2xl p-2">
+                <div className={`relative overflow-hidden rounded-[2.2rem] bg-gradient-to-br ${meta.accent} p-1 shadow-xl ${meta.glow}`}>
+                  <div className="relative overflow-hidden rounded-[2rem] bg-muted aspect-[3/4] sm:aspect-[4/5]">
+                    <img
+                      src={slides[currentSlide].image}
+                      alt={slides[currentSlide].title}
+                      className="h-full w-full object-cover grayscale-[0.2] contrast-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+
+                    {/* Floating kicker badge */}
                     <motion.div
                       animate={{ y: [0, -6, 0] }}
-                      transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-                      className="absolute right-4 top-4 rounded-full border border-white/25 bg-white/16 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-white backdrop-blur-md"
+                      transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                      className="absolute right-4 top-4 rounded-full border border-white/25 bg-black/30 px-4 py-2 text-[9px] font-black uppercase tracking-[0.2em] text-white backdrop-blur-md shadow-lg"
                     >
                       {slides[currentSlide].kicker}
                     </motion.div>
-                    <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
-                      <div className="mb-4 flex items-center gap-3">
-                        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/14 backdrop-blur-md">
-                          <Icon className="h-5 w-5" />
+
+                    {/* Content overlay */}
+                    <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8 text-foreground font-sans">
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="mb-5 flex items-center gap-3"
+                      >
+                        <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-foreground to-foreground/80 text-background shadow-xl">
+                          <Icon className="h-5 w-5" strokeWidth={2.5} />
                         </span>
                         <div>
-                          <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-white/70">{meta.eyebrow}</p>
-                          <p className="text-sm font-medium text-white/88">Tourisme premium et local</p>
+                          <p className="text-[9px] font-black uppercase tracking-[0.28em] text-accent italic">{meta.eyebrow}</p>
+                          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tight">Premium Experience</p>
                         </div>
-                      </div>
+                      </motion.div>
 
-                      <h2 className="font-heading text-[2rem] font-semibold leading-[1.05] tracking-[-0.04em]">
+                      <motion.h2
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="text-[1.9rem] sm:text-[2.2rem] font-black leading-[1.15] tracking-tighter uppercase text-foreground drop-shadow-lg"
+                      >
                         {slides[currentSlide].title}
-                      </h2>
-                      <p className="mt-3 max-w-sm text-sm leading-6 text-white/78">{slides[currentSlide].description}</p>
+                      </motion.h2>
+                      <motion.p
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                        className="mt-4 max-w-sm text-[13px] leading-relaxed text-muted-foreground font-medium"
+                      >
+                        {slides[currentSlide].description}
+                      </motion.p>
                     </div>
                   </div>
                 </div>
@@ -112,27 +192,38 @@ export default function Onboarding() {
           </AnimatePresence>
         </div>
 
-        <div className="mx-auto w-full max-w-md">
-          <div className="mb-5 flex items-center justify-center gap-2">
+        {/* Controls */}
+        <div className="mt-10 space-y-6">
+          {/* Pagination dots */}
+          <div className="flex items-center justify-center gap-3">
             {slides.map((_, index) => (
-              <motion.div
+              <motion.button
                 key={index}
+                onClick={() => {
+                  hapticFeedback('light');
+                  setDirection(index > currentSlide ? 1 : -1);
+                  setCurrentSlide(index);
+                }}
+                className="relative h-2 rounded-full overflow-hidden"
+                initial={false}
                 animate={{
-                  width: index === currentSlide ? 38 : 10,
-                  opacity: index === currentSlide ? 1 : 0.45,
+                  width: index === currentSlide ? 36 : 10,
+                  backgroundColor: index === currentSlide ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground))',
+                  opacity: index === currentSlide ? 1 : 0.4,
                 }}
                 transition={{ duration: 0.3 }}
-                className={`h-2 rounded-full ${index === currentSlide ? 'bg-slate-900' : 'bg-slate-400'}`}
+                aria-label={`Go to slide ${index + 1}`}
               />
             ))}
           </div>
 
+          {/* CTA Button */}
           <Button
             onClick={handleNext}
-            className="h-14 w-full rounded-[22px] bg-slate-950 text-sm font-semibold text-white shadow-[0_24px_50px_-24px_rgba(15,23,42,0.8)] transition hover:bg-slate-900"
+            className="h-14 w-full rounded-2xl bg-gradient-to-r from-foreground to-foreground/90 text-background text-[12px] font-black uppercase tracking-[0.2em] transition-all hover:to-accent hover:shadow-xl hover:shadow-foreground/20 active:scale-[0.98] border-none shadow-lg"
           >
-            {currentSlide === slides.length - 1 ? t('onboarding.start') : t('common.continue')}
-            <ChevronRight className="ml-2 h-5 w-5" />
+            {currentSlide === slides.length - 1 ? t('onboarding.start', 'Get Started') : t('common.continue', 'Continue')}
+            <ChevronRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
       </div>

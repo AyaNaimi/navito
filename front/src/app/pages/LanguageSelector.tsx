@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, Globe, ChevronRight } from 'lucide-react';
+import { Check, Globe, ChevronRight, Languages } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
@@ -17,9 +17,9 @@ const languages = [
 ];
 
 const reveal = {
-  initial: { opacity: 0, y: 10 },
+  initial: { opacity: 0, y: 15 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.5, ease: [0.23, 1, 0.32, 1] as any },
+  transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as any },
 };
 
 export default function LanguageSelector() {
@@ -34,80 +34,89 @@ export default function LanguageSelector() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#FAFAFA] flex flex-col font-sans antialiased text-[#171717]">
+    <div className="min-h-screen w-full bg-[#020617] flex flex-col font-sans antialiased text-white overflow-hidden relative">
+      {/* Background Decor */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[45%] h-[45%] bg-emerald-500/10 blur-[130px] rounded-full" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[45%] h-[45%] bg-blue-500/10 blur-[130px] rounded-full" />
+      </div>
+
       {/* Header */}
-      <header className="px-6 py-12 max-w-xl mx-auto w-full text-center">
+      <header className="px-6 pt-20 pb-12 max-w-xl mx-auto w-full text-center relative z-10">
         <motion.div 
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white border border-[#E5E5E5] shadow-sm mb-6"
+          initial={{ scale: 0.8, opacity: 0, rotate: -10 }}
+          animate={{ scale: 1, opacity: 1, rotate: 0 }}
+          className="mx-auto flex h-20 w-20 items-center justify-center rounded-[2rem] bg-white border border-white shadow-2xl mb-8 group"
         >
-          <Globe className="h-8 w-8 text-[#171717]" />
+          <Languages className="h-10 w-10 text-slate-950 group-hover:rotate-12 transition-transform duration-500" />
         </motion.div>
         <motion.div {...reveal}>
-          <h1 className="text-[24px] font-bold tracking-tight">{t('language.title')}</h1>
-          <p className="mt-2 text-[14px] font-medium text-[#737373] max-w-[280px] mx-auto">
+          <h1 className="text-3xl font-black tracking-tight uppercase italic italic-none">Navito</h1>
+          <p className="mt-4 text-[10px] font-black uppercase tracking-[0.4em] text-emerald-500">
+             {t('language.title')}
+          </p>
+          <p className="mt-6 text-[13px] font-medium text-slate-500 max-w-[240px] mx-auto leading-relaxed">
             {t('language.subtitle')}
           </p>
         </motion.div>
       </header>
 
       {/* Language List */}
-      <main className="flex-1 px-6 max-w-xl mx-auto w-full pb-32">
-        <div className="space-y-3">
+      <main className="flex-1 px-6 max-w-xl mx-auto w-full pb-40 relative z-10 overflow-y-auto">
+        <div className="grid grid-cols-1 gap-4">
           {languages.map((item, index) => (
-            <motion.div
+            <motion.button
               key={item.code}
               {...reveal}
               transition={{ ...reveal.transition, delay: index * 0.05 }}
+              onClick={() => setSelectedLanguage(item.code)}
+              className={`group flex w-full items-center justify-between rounded-[2rem] border px-6 py-5 transition-all outline-none ${
+                selectedLanguage === item.code 
+                  ? 'border-white bg-white text-slate-950 shadow-[0_20px_40px_rgba(255,255,255,0.1)]' 
+                  : 'border-white/5 bg-slate-900/50 text-slate-400 hover:border-white/10 hover:bg-slate-900'
+              }`}
             >
-              <Card
-                onClick={() => setSelectedLanguage(item.code)}
-                className={`group cursor-pointer flex w-full items-center justify-between rounded-2xl border p-4 transition-all ${
+              <div className="flex items-center gap-6">
+                <div className={`flex h-12 w-12 items-center justify-center rounded-2xl text-[11px] font-black tracking-widest transition-all ${
                   selectedLanguage === item.code 
-                    ? 'border-[#171717] bg-white shadow-md' 
-                    : 'border-[#E5E5E5] bg-white hover:border-[#171717]/30 hover:shadow-sm'
-                }`}
-              >
-                <div className="flex items-center gap-4">
-                  <div className={`flex h-11 w-11 items-center justify-center rounded-xl text-[13px] font-bold transition-all ${
-                    selectedLanguage === item.code 
-                      ? 'bg-[#171717] text-white shadow-lg shadow-black/10' 
-                      : 'bg-[#F5F5F7] text-[#737373]'
-                  }`}>
-                    {item.tag}
-                  </div>
-                  <div>
-                    <span className="text-[15px] font-bold text-[#171717]">{item.name}</span>
-                    <span className="ml-2 text-[14px] opacity-60">{item.flag}</span>
-                  </div>
+                    ? 'bg-slate-900 text-white' 
+                    : 'bg-white/5 text-slate-500 group-hover:bg-white/10'
+                }`}>
+                  {item.tag}
                 </div>
-                {selectedLanguage === item.code ? (
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#171717] text-white">
-                    <Check className="h-3.5 w-3.5" />
-                  </div>
-                ) : (
-                  <ChevronRight className="h-4 w-4 text-[#E5E5E5] group-hover:text-[#A3A3A3] transition-colors" />
-                )}
-              </Card>
-            </motion.div>
+                <div className="text-left">
+                  <span className="text-[16px] font-black uppercase tracking-tight">{item.name}</span>
+                  <span className="ml-3 grayscale group-hover:grayscale-0 transition-all opacity-60 group-hover:opacity-100">{item.flag}</span>
+                </div>
+              </div>
+              {selectedLanguage === item.code && (
+                <motion.div 
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="flex h-7 w-7 items-center justify-center rounded-xl bg-emerald-500 text-slate-950"
+                >
+                  <Check className="h-4 w-4" />
+                </motion.div>
+              )}
+            </motion.button>
           ))}
         </div>
       </main>
 
-      {/* Footer / Action */}
-      <footer className="fixed bottom-0 left-0 right-0 p-6 bg-white/80 backdrop-blur-xl border-t border-[#E5E5E5] z-50">
-        <div className="max-w-md mx-auto">
-          <Button
-            onClick={handleContinue}
-            className="h-14 w-full rounded-2xl bg-[#171717] text-white hover:opacity-90 font-bold text-[14px] uppercase tracking-[0.2em] transition-all shadow-xl shadow-black/10 group active:scale-[0.98]"
-          >
-            {t('language.continue')}
-            <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-          </Button>
+      {/* Action Area */}
+      <footer className="fixed bottom-0 left-0 right-0 p-8 z-50">
+        <div className="max-w-xl mx-auto">
+          <div className="p-2 rounded-[2.5rem] bg-slate-950/40 backdrop-blur-3xl border border-white/5 shadow-2xl">
+            <Button
+              onClick={handleContinue}
+              className="h-16 w-full rounded-[2rem] bg-white text-slate-950 hover:bg-emerald-500 hover:text-white font-black text-[12px] uppercase tracking-[0.25em] transition-all shadow-2xl group active:scale-[0.98]"
+            >
+              {t('common.continue')}
+              <ChevronRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+            </Button>
+          </div>
         </div>
       </footer>
     </div>
   );
 }
-

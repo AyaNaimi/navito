@@ -1,8 +1,13 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Bell, Calendar, Car, Globe, Heart, HelpCircle, LayoutDashboard, LogOut, Settings, Shield, ShieldCheck, User, UserRound, ArrowRight } from 'lucide-react';
+import { 
+  ArrowLeft, Bell, Calendar, Car, Globe, Heart, 
+  HelpCircle, LayoutDashboard, LogOut, Settings, 
+  Shield, ShieldCheck, User, UserRound, ArrowRight,
+  ShieldAlert, Sparkles, MapPin, Sun, Moon, ChevronRight
+} from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '../components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
+import { Avatar, AvatarFallback } from '../components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Separator } from '../components/ui/separator';
@@ -10,15 +15,15 @@ import { useAppContext } from '../context/AppContext';
 import { useTranslation } from 'react-i18next';
 
 const reveal = {
-  initial: { opacity: 0, y: 10 },
+  initial: { opacity: 0, y: 15 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.5, ease: [0.23, 1, 0.32, 1] },
+  transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
 };
 
 export default function Profile() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { resetFlow, userEmail, userName, userRole } = useAppContext();
+  const { resetFlow, userEmail, userName, userRole, theme, toggleTheme } = useAppContext();
 
   const roleMeta = {
     tourist: {
@@ -50,71 +55,81 @@ export default function Profile() {
       { icon: Bell, label: t('profile.menu.notifications'), action: () => {} },
     ],
     guide: [
-      { icon: LayoutDashboard, label: t('profile.menu.guideRequests'), action: () => navigate('/guide') },
+      { icon: LayoutDashboard, label: t('profile.menu.dashboard'), action: () => navigate('/dashboard/guide') },
+      { icon: MapPin, label: t('profile.menu.guideRequests'), action: () => navigate('/guide') },
       { icon: Calendar, label: t('profile.menu.mySchedule'), action: () => {} },
-      { icon: UserRound, label: t('profile.menu.travelerReviews'), action: () => {} },
     ],
     driver: [
+      { icon: LayoutDashboard, label: t('profile.menu.dashboard'), action: () => navigate('/dashboard/driver') },
       { icon: Car, label: t('profile.menu.rideRequests'), action: () => navigate('/transport') },
-      { icon: Calendar, label: t('profile.menu.availability'), action: () => {} },
       { icon: Bell, label: t('profile.menu.driverAlerts'), action: () => {} },
     ],
     super_admin: [
+      { icon: LayoutDashboard, label: t('profile.menu.dashboard'), action: () => navigate('/dashboard/superadmin') },
       { icon: ShieldCheck, label: t('profile.menu.platformOverview'), action: () => {} },
-      { icon: User, label: t('profile.menu.userManagement'), action: () => {} },
       { icon: Settings, label: t('profile.menu.adminSettings'), action: () => {} },
     ],
   };
 
   const commonMenuItems = [
     { icon: Globe, label: t('profile.menu.language'), action: () => navigate('/language') },
-    { icon: Shield, label: t('profile.menu.privacySafety'), action: () => {} },
+    { icon: ShieldAlert, label: t('profile.menu.privacySafety'), action: () => {} },
     { icon: HelpCircle, label: t('profile.menu.helpSupport'), action: () => {} },
     { icon: Settings, label: t('profile.menu.settings'), action: () => {} },
   ];
 
-  const menuItems = [...roleMenus[userRole], ...commonMenuItems];
-  const activeRole = roleMeta[userRole];
+  const menuItems = [...(roleMenus[userRole] || roleMenus.tourist), ...commonMenuItems];
+  const activeRole = roleMeta[userRole] || roleMeta.tourist;
 
   return (
-    <div className="min-h-screen w-full bg-[#FAFAFA] flex flex-col font-sans antialiased text-[#171717]">
-      {/* Header */}
+    <div className="min-h-screen w-full bg-background flex flex-col font-sans antialiased text-foreground overflow-x-hidden transition-colors duration-500">
+      {/* Ambient Background */}
+      <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+        <div className="absolute top-10 right-0 w-[50%] h-[40%] rounded-full bg-blue-500/[0.05] blur-[120px]" />
+        <div className="absolute bottom-20 left-0 w-[40%] h-[40%] rounded-full bg-emerald-500/[0.05] blur-[100px]" />
+      </div>
+
       <motion.header
-        initial={{ opacity: 0, y: -10 }}
+        initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="sticky top-0 z-50 border-b border-[#E5E5E5] bg-white/80 backdrop-blur-xl px-6 py-6"
+        className="sticky top-0 z-50 bg-background/80 backdrop-blur-2xl border-b border-border px-6 py-10"
       >
         <div className="max-w-xl mx-auto w-full">
-          <div className="flex items-center justify-between mb-8">
-            <Button 
-              variant="outline" 
-              size="icon" 
+          <div className="flex items-center justify-between mb-10">
+            <motion.button 
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
               onClick={() => navigate(-1)} 
-              className="h-10 w-10 rounded-full bg-white border-[#E5E5E5]"
+              className="h-12 w-12 flex items-center justify-center rounded-2xl bg-secondary border border-border"
             >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon" className="h-10 w-10 rounded-full bg-white border-[#E5E5E5]">
-              <Settings className="h-4 w-4" />
-            </Button>
+              <ArrowLeft className="h-5 w-5" />
+            </motion.button>
+            <h1 className="text-xl font-black uppercase tracking-widest italic">{t('profile.title')}</h1>
+            <motion.button 
+              whileHover={{ rotate: 90 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={toggleTheme}
+              className="h-12 w-12 flex items-center justify-center rounded-2xl bg-secondary border border-border text-foreground"
+            >
+              {theme === 'dark' ? <Sun className="h-5 w-5 text-accent" /> : <Moon className="h-5 w-5 text-primary" />}
+            </motion.button>
           </div>
 
-          <div className="flex items-center gap-5">
-            <div className="relative">
-              <Avatar className="h-20 w-20 border border-[#E5E5E5]">
-                <AvatarImage src="" />
-                <AvatarFallback className="bg-[#F5F5F7] text-[#171717]">
-                  <User className="h-8 w-8" />
+          <div className="flex items-center gap-6">
+            <div className="relative h-24 w-24">
+              <Avatar className="h-full w-full rounded-3xl border border-border shadow-2xl">
+                <AvatarFallback className="bg-secondary text-foreground">
+                  <UserRound className="h-10 w-10" />
                 </AvatarFallback>
               </Avatar>
-              <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-white border border-[#E5E5E5] flex items-center justify-center shadow-sm">
-                <ShieldCheck className="h-3 w-3 text-[#171717]" />
+              <div className="absolute -bottom-2 -right-2 h-8 w-8 rounded-xl bg-foreground text-background flex items-center justify-center shadow-2xl border border-border">
+                <ShieldCheck className="h-4 w-4" />
               </div>
             </div>
-            <div className="space-y-1">
-              <h2 className="text-[20px] font-bold tracking-tight">{userName}</h2>
-              <p className="text-[13px] font-medium text-[#737373]">{userEmail}</p>
-              <Badge variant="secondary" className="mt-1 bg-[#F5F5F7] text-[#171717] border-[#E5E5E5] hover:bg-[#F5F5F7]">
+            <div className="min-w-0">
+              <h2 className="text-2xl font-black tracking-tight truncate uppercase">{userName}</h2>
+              <p className="text-[14px] font-medium text-muted-foreground truncate mt-1">{userEmail}</p>
+              <Badge className="mt-3 bg-accent text-accent-foreground border-none font-black text-[10px] uppercase tracking-[0.2em] px-3 py-1">
                 {userRole.replace('_', ' ')}
               </Badge>
             </div>
@@ -122,78 +137,71 @@ export default function Profile() {
         </div>
       </motion.header>
 
-      <main className="flex-1 overflow-auto px-6 py-8 space-y-10 max-w-xl mx-auto w-full">
+      <main className="flex-1 max-w-xl mx-auto w-full px-6 py-10 space-y-12 pb-32">
         {/* Role Intelligence */}
-        <motion.section {...reveal} className="w-full">
-          <Card className="border-[#E5E5E5] bg-white shadow-sm overflow-hidden rounded-2xl">
-            <CardHeader className="p-6">
-              <CardTitle className="text-[15px] font-bold text-[#171717]">{activeRole.title}</CardTitle>
-              <CardDescription className="text-[12px] leading-relaxed text-[#737373] font-medium mt-1">
+        <motion.section {...reveal}>
+          <Card className="border-border bg-card shadow-2xl overflow-hidden rounded-[2.5rem]">
+            <CardHeader className="p-8">
+              <CardTitle className="text-[16px] font-black text-foreground uppercase tracking-widest flex items-center gap-3 italic">
+                <Sparkles className="h-4 w-4 text-accent" />
+                {activeRole.title}
+              </CardTitle>
+              <CardDescription className="text-[13px] leading-relaxed text-muted-foreground font-medium mt-3">
                 {activeRole.description}
               </CardDescription>
             </CardHeader>
-            <Separator className="bg-[#F5F5F7]" />
-            <CardContent className="p-6">
+            <div className="px-8 pb-8">
               <div className="flex flex-wrap gap-2">
                 {activeRole.chips.map((chip) => (
-                  <Badge key={chip} variant="outline" className="bg-[#F5F5F7] border-[#E5E5E5] text-[10px] font-bold uppercase tracking-wider text-[#171717] px-3 py-1 rounded-full">
+                  <Badge key={chip} className="bg-secondary text-muted-foreground border-none text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-xl transition-all">
                     {chip}
                   </Badge>
                 ))}
               </div>
-            </CardContent>
+            </div>
           </Card>
         </motion.section>
 
         {/* Menu Items */}
-        <div className="space-y-4">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-[#737373] ml-1">Account Management</p>
-          <div className="space-y-3">
-            {menuItems.map((item, idx) => {
-              const Icon = item.icon;
-              return (
-                <motion.div
-                  key={item.label}
-                  {...reveal}
-                  transition={{ delay: idx * 0.05 }}
-                >
-                  <Button
-                    variant="outline"
-                    onClick={item.action}
-                    className="w-full h-16 justify-between p-4 rounded-2xl border-[#E5E5E5] bg-white hover:bg-[#F5F5F7] group transition-all"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F5F5F7] group-hover:bg-white transition-colors">
-                        <Icon className="h-4.5 w-4.5 text-[#171717]" />
-                      </div>
-                      <span className="text-[14px] font-bold text-[#171717]">{item.label}</span>
-                    </div>
-                    <ArrowRight className="h-3.5 w-3.5 text-[#A3A3A3] opacity-0 group-hover:opacity-100 transition-all" />
-                  </Button>
-                </motion.div>
-              );
-            })}
+        <div className="space-y-6">
+          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground px-1">Account Management</p>
+          <div className="space-y-4">
+            {menuItems.map((item, idx) => (
+              <motion.button
+                key={item.label}
+                {...reveal}
+                transition={{ delay: idx * 0.05 }}
+                onClick={item.action}
+                className="w-full h-20 flex items-center justify-between p-6 rounded-[2rem] border border-border bg-card/50 hover:bg-card hover:border-accent/10 transition-all group"
+              >
+                <div className="flex items-center gap-5">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary group-hover:bg-foreground transition-all group-hover:rotate-12">
+                    <item.icon className="h-5 w-5 text-foreground group-hover:text-background transition-colors" />
+                  </div>
+                  <span className="text-[15px] font-black text-foreground uppercase tracking-tight">{item.label}</span>
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-all group-hover:translate-x-1" />
+              </motion.button>
+            ))}
           </div>
         </div>
 
         {/* Exit Action */}
-        <div className="pt-4 pb-12">
-          <Button
-            variant="outline"
+        <div className="pt-6">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => {
               resetFlow();
               navigate('/language');
             }}
-            className="h-14 w-full rounded-2xl border-[#E5E5E5] bg-white hover:bg-[#FEF2F2] hover:border-[#FEE2E2] hover:text-[#EF4444] transition-all group shadow-sm flex items-center justify-center gap-3"
+            className="h-16 w-full rounded-[2rem] border border-destructive/10 bg-destructive/5 text-destructive font-black uppercase tracking-[0.2em] text-[11px] shadow-sm flex items-center justify-center gap-3 active:bg-destructive active:text-white transition-all shadow-xl shadow-destructive/5"
           >
-            <LogOut className="h-4.5 w-4.5 text-[#737373] group-hover:text-[#EF4444] transition-colors" />
-            <span className="text-[13px] font-bold uppercase tracking-widest text-[#737373]">
-              {t('profile.menu.signOut')}
-            </span>
-          </Button>
+            <LogOut className="h-5 w-5" />
+            {t('common.signOut')}
+          </motion.button>
         </div>
       </main>
     </div>
   );
 }
-

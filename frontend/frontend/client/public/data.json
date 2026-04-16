@@ -1,0 +1,591 @@
+{
+  "cities": [
+    {
+      "id": "marrakech",
+      "name": "Marrakech",
+      "nameAr": "مراكش",
+      "lat": 31.6295,
+      "lng": -8.0088,
+      "description": "The Red City, famous for its medina, Jemaa el-Fnaa square, and Berber culture",
+      "region": "Marrakech-Safi",
+      "population": "928,850"
+    },
+    {
+      "id": "fes",
+      "name": "Fès",
+      "nameAr": "فاس",
+      "lat": 34.0331,
+      "lng": -5.0033,
+      "description": "Ancient imperial city with the world's oldest university and intricate medina",
+      "region": "Fès-Meknès",
+      "population": "1,112,072"
+    },
+    {
+      "id": "casablanca",
+      "name": "Casablanca",
+      "nameAr": "الدار البيضاء",
+      "lat": 33.5731,
+      "lng": -7.5898,
+      "description": "Morocco's largest city, modern hub with Hassan II Mosque and Atlantic beaches",
+      "region": "Casablanca-Settat",
+      "population": "3,359,818"
+    },
+    {
+      "id": "tanger",
+      "name": "Tangier",
+      "nameAr": "طنجة",
+      "lat": 35.7595,
+      "lng": -5.8340,
+      "description": "Gateway to Africa, where Mediterranean meets Atlantic, historic international zone",
+      "region": "Tanger-Tetouan-Al Hoceima",
+      "population": "947,952"
+    },
+    {
+      "id": "chefchaouen",
+      "name": "Chefchaouen",
+      "nameAr": "شفشاون",
+      "lat": 35.1686,
+      "lng": -5.2676,
+      "description": "The Blue City, famous for its blue-painted medina in the Rif Mountains",
+      "region": "Tanger-Tetouan-Al Hoceima",
+      "population": "36,000"
+    },
+    {
+      "id": "agadir",
+      "name": "Agadir",
+      "nameAr": "أكادير",
+      "lat": 30.4202,
+      "lng": -9.5981,
+      "description": "Coastal resort city with beautiful beaches and modern infrastructure",
+      "region": "Souss-Massa",
+      "population": "421,844"
+    }
+  ],
+  "places": [
+    {
+      "id": "jemaa-el-fnaa",
+      "cityId": "marrakech",
+      "name": "Jemaa el-Fnaa",
+      "nameAr": "جامع الفنا",
+      "category": "monument",
+      "lat": 31.6295,
+      "lng": -8.0088,
+      "description": "Historic square in the medina, UNESCO World Heritage site, heart of Marrakech with street performers, food stalls, and snake charmers",
+      "admissionPrice": "Free",
+      "hours": "24/7",
+      "tips": "Best visited early morning or evening to avoid crowds. Bring cash for food vendors. Beware of unofficial 'guides'.",
+      "dressCode": "Modest clothing recommended",
+      "duration": "2-3 hours",
+      "image": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400"
+    },
+    {
+      "id": "koutoubia-mosque",
+      "cityId": "marrakech",
+      "name": "Koutoubia Mosque",
+      "nameAr": "مسجد الكتبية",
+      "category": "mosque",
+      "lat": 31.6246,
+      "lng": -8.0088,
+      "description": "12th-century mosque with iconic minaret, one of Morocco's most recognizable landmarks. Non-Muslims cannot enter but exterior is stunning.",
+      "admissionPrice": "Free (exterior)",
+      "hours": "24/7 (exterior viewing)",
+      "tips": "Best photographed at sunset. Respectful distance from prayer times.",
+      "dressCode": "Modest clothing required",
+      "duration": "30 minutes",
+      "image": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400"
+    },
+    {
+      "id": "bahia-palace",
+      "cityId": "marrakech",
+      "name": "Bahia Palace",
+      "nameAr": "قصر الباهية",
+      "category": "monument",
+      "lat": 31.6213,
+      "lng": -8.0045,
+      "description": "19th-century palace with intricate zellige tilework, carved cedar, and stucco. One of Marrakech's most beautiful architectural treasures.",
+      "admissionPrice": "70 MAD",
+      "hours": "9:00 AM - 4:00 PM",
+      "tips": "Hire a guide for deeper historical context. Photography allowed. Allow 1.5-2 hours.",
+      "dressCode": "Modest clothing recommended",
+      "duration": "1.5-2 hours",
+      "image": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400"
+    },
+    {
+      "id": "ben-youssef-mosque",
+      "cityId": "marrakech",
+      "name": "Ben Youssef Mosque & Medersa",
+      "nameAr": "مسجد ومدرسة ابن يوسف",
+      "category": "mosque",
+      "lat": 31.6345,
+      "lng": -8.0055,
+      "description": "16th-century Islamic school with stunning courtyard and zellige decoration. One of Morocco's finest examples of Saadian architecture.",
+      "admissionPrice": "40 MAD",
+      "hours": "9:00 AM - 5:00 PM",
+      "tips": "Modest dress required. Remove shoes in some areas. Respectful behavior essential.",
+      "dressCode": "Modest clothing, women should cover shoulders and knees",
+      "duration": "1-1.5 hours",
+      "image": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400"
+    },
+    {
+      "id": "atlas-mountains",
+      "cityId": "marrakech",
+      "name": "Atlas Mountains",
+      "nameAr": "جبال الأطلس",
+      "category": "nature",
+      "lat": 31.5,
+      "lng": -7.5,
+      "description": "Majestic mountain range south of Marrakech, perfect for trekking, visiting Berber villages, and experiencing authentic mountain culture.",
+      "admissionPrice": "Free",
+      "hours": "Sunrise to sunset",
+      "tips": "Hire a local guide for safety and cultural insights. Bring water and sun protection. Best in spring/fall.",
+      "dressCode": "Comfortable hiking clothes",
+      "duration": "Full day",
+      "image": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400"
+    },
+    {
+      "id": "medina-fes",
+      "cityId": "fes",
+      "name": "Fès Medina",
+      "nameAr": "مدينة فاس العتيقة",
+      "category": "monument",
+      "lat": 34.0331,
+      "lng": -5.0033,
+      "description": "UNESCO World Heritage site, oldest medina in Morocco with 9,000+ streets, traditional leather tanneries, and centuries-old souks.",
+      "admissionPrice": "Free",
+      "hours": "24/7",
+      "tips": "Hire an official guide (50-100 MAD) to avoid getting lost. Visit tanneries early morning. Wear comfortable shoes.",
+      "dressCode": "Modest clothing recommended",
+      "duration": "3-4 hours",
+      "image": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400"
+    },
+    {
+      "id": "hassan-ii-mosque",
+      "cityId": "casablanca",
+      "name": "Hassan II Mosque",
+      "nameAr": "مسجد الحسن الثاني",
+      "category": "mosque",
+      "lat": 33.5731,
+      "lng": -7.5898,
+      "description": "Modern architectural marvel built on the Atlantic coast, one of the world's largest mosques with retractable roof and stunning minaret.",
+      "admissionPrice": "120 MAD (guided tour)",
+      "hours": "9:00 AM - 6:00 PM (closed during prayer times)",
+      "tips": "Book tours in advance. Modest dress required. Non-Muslims can only visit with guided tour.",
+      "dressCode": "Modest clothing, women must cover hair",
+      "duration": "1-1.5 hours",
+      "image": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400"
+    },
+    {
+      "id": "kasbah-medina",
+      "cityId": "tangier",
+      "name": "Tangier Medina & Kasbah",
+      "nameAr": "مدينة طنجة العتيقة",
+      "category": "monument",
+      "lat": 35.7595,
+      "lng": -5.8340,
+      "description": "Historic medina with winding alleys, traditional riads, and the Kasbah palace overlooking the Strait of Gibraltar.",
+      "admissionPrice": "Free (medina), 30 MAD (Kasbah)",
+      "hours": "24/7 (medina), 9 AM - 5 PM (Kasbah)",
+      "tips": "Hire a guide to understand the international zone history. Visit Kasbah for panoramic views.",
+      "dressCode": "Modest clothing recommended",
+      "duration": "2-3 hours",
+      "image": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400"
+    },
+    {
+      "id": "blue-city",
+      "cityId": "chefchaouen",
+      "name": "Chefchaouen Blue Medina",
+      "nameAr": "مدينة شفشاون الزرقاء",
+      "category": "monument",
+      "lat": 35.1686,
+      "lng": -5.2676,
+      "description": "Entire medina painted in shades of blue, creating a dreamlike atmosphere. UNESCO World Heritage site in the Rif Mountains.",
+      "admissionPrice": "Free",
+      "hours": "24/7",
+      "tips": "Best light for photos is early morning or late afternoon. Wear comfortable shoes for steep streets. Bring cash.",
+      "dressCode": "Casual, comfortable",
+      "duration": "2-3 hours",
+      "image": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400"
+    },
+    {
+      "id": "paradise-valley",
+      "cityId": "agadir",
+      "name": "Paradise Valley",
+      "nameAr": "واد الجنة",
+      "category": "nature",
+      "lat": 30.4202,
+      "lng": -9.5981,
+      "description": "Scenic valley with natural pools, waterfalls, and lush vegetation. Popular for swimming, picnicking, and hiking.",
+      "admissionPrice": "Free",
+      "hours": "Sunrise to sunset",
+      "tips": "Go with a guide or organized tour for safety. Bring swimwear and towel. Best in summer.",
+      "dressCode": "Swimwear, comfortable hiking clothes",
+      "duration": "4-5 hours",
+      "image": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400"
+    }
+  ],
+  "restaurants": [
+    {
+      "id": "rest-001",
+      "cityId": "marrakech",
+      "name": "Dar Cherifa",
+      "cuisine": "Moroccan Traditional",
+      "pricePerPerson": 120,
+      "rating": 4.8,
+      "halal": true,
+      "lat": 31.6295,
+      "lng": -8.0088,
+      "hours": "12:00 PM - 11:00 PM",
+      "specialties": ["Tagine", "Couscous", "Pastilla"],
+      "image": "https://images.unsplash.com/photo-1504674900967-a8f32de4a645?w=400"
+    },
+    {
+      "id": "rest-002",
+      "cityId": "marrakech",
+      "name": "Café Koutoubia",
+      "cuisine": "Moroccan & International",
+      "pricePerPerson": 85,
+      "rating": 4.5,
+      "halal": true,
+      "lat": 31.6246,
+      "lng": -8.0088,
+      "hours": "8:00 AM - 10:00 PM",
+      "specialties": ["Breakfast", "Mint Tea", "Sandwiches"],
+      "image": "https://images.unsplash.com/photo-1504674900967-a8f32de4a645?w=400"
+    },
+    {
+      "id": "rest-003",
+      "cityId": "marrakech",
+      "name": "Le Jardin",
+      "cuisine": "French-Moroccan Fusion",
+      "pricePerPerson": 180,
+      "rating": 4.7,
+      "halal": false,
+      "lat": 31.6213,
+      "lng": -8.0045,
+      "hours": "12:00 PM - 11:00 PM",
+      "specialties": ["Fusion Dishes", "Wine Selection", "Desserts"],
+      "image": "https://images.unsplash.com/photo-1504674900967-a8f32de4a645?w=400"
+    },
+    {
+      "id": "rest-004",
+      "cityId": "fes",
+      "name": "Fez Medina Kitchen",
+      "cuisine": "Traditional Moroccan",
+      "pricePerPerson": 95,
+      "rating": 4.6,
+      "halal": true,
+      "lat": 34.0331,
+      "lng": -5.0033,
+      "hours": "11:00 AM - 10:00 PM",
+      "specialties": ["Harira", "Briwat", "Lamb Tagine"],
+      "image": "https://images.unsplash.com/photo-1504674900967-a8f32de4a645?w=400"
+    },
+    {
+      "id": "rest-005",
+      "cityId": "casablanca",
+      "name": "Restaurant Sqala",
+      "cuisine": "Moroccan & Seafood",
+      "pricePerPerson": 140,
+      "rating": 4.7,
+      "halal": true,
+      "lat": 33.5731,
+      "lng": -7.5898,
+      "hours": "12:00 PM - 11:00 PM",
+      "specialties": ["Fresh Fish", "Seafood Tagine", "Grilled Meats"],
+      "image": "https://images.unsplash.com/photo-1504674900967-a8f32de4a645?w=400"
+    },
+    {
+      "id": "rest-006",
+      "cityId": "tangier",
+      "name": "El Morocco Club",
+      "cuisine": "International & Moroccan",
+      "pricePerPerson": 160,
+      "rating": 4.5,
+      "halal": false,
+      "lat": 35.7595,
+      "lng": -5.8340,
+      "hours": "12:00 PM - 1:00 AM",
+      "specialties": ["Cocktails", "Tapas", "Mediterranean"],
+      "image": "https://images.unsplash.com/photo-1504674900967-a8f32de4a645?w=400"
+    },
+    {
+      "id": "rest-007",
+      "cityId": "chefchaouen",
+      "name": "Café Clock",
+      "cuisine": "Moroccan & Café",
+      "pricePerPerson": 75,
+      "rating": 4.6,
+      "halal": true,
+      "lat": 35.1686,
+      "lng": -5.2676,
+      "hours": "8:00 AM - 6:00 PM",
+      "specialties": ["Breakfast", "Pastries", "Mint Tea"],
+      "image": "https://images.unsplash.com/photo-1504674900967-a8f32de4a645?w=400"
+    },
+    {
+      "id": "rest-008",
+      "cityId": "agadir",
+      "name": "Beach Restaurant Sunset",
+      "cuisine": "Seafood & International",
+      "pricePerPerson": 130,
+      "rating": 4.4,
+      "halal": true,
+      "lat": 30.4202,
+      "lng": -9.5981,
+      "hours": "12:00 PM - 11:00 PM",
+      "specialties": ["Grilled Fish", "Shrimp", "Ocean Views"],
+      "image": "https://images.unsplash.com/photo-1504674900967-a8f32de4a645?w=400"
+    }
+  ],
+  "transport": {
+    "marrakech": {
+      "taxis": {
+        "petitTaxi": {
+          "description": "Small red taxis within city limits",
+          "avgPrice": "8-15 MAD per trip",
+          "tips": "Insist on meter. Avoid unofficial taxis.",
+          "zones": ["Medina", "Gueliz", "Hivernage"]
+        },
+        "grandTaxi": {
+          "description": "Shared taxis for longer routes",
+          "avgPrice": "20-50 MAD depending on distance",
+          "tips": "Negotiate before boarding. Depart when full.",
+          "routes": ["Marrakech-Essaouira", "Marrakech-Agadir", "Marrakech-Ouarzazate"]
+        }
+      },
+      "buses": {
+        "mdina": {
+          "name": "M'dina Bus",
+          "routes": "10+ urban routes",
+          "avgPrice": "5-8 MAD",
+          "tips": "Buy ticket from driver. Buses crowded during rush hours."
+        }
+      },
+      "trains": {
+        "oncf": {
+          "name": "ONCF",
+          "routes": ["Marrakech-Casablanca", "Marrakech-Fès"],
+          "avgPrice": "80-150 MAD",
+          "website": "www.oncf.ma"
+        }
+      }
+    },
+    "fes": {
+      "taxis": {
+        "petitTaxi": {
+          "description": "Blue taxis within city",
+          "avgPrice": "6-12 MAD per trip",
+          "tips": "Meter is standard. Avoid night taxis without meter.",
+          "zones": ["Medina", "Ville Nouvelle"]
+        }
+      }
+    }
+  },
+  "scamAlerts": [
+    {
+      "id": "scam-001",
+      "title": "Fake Guides",
+      "description": "Unofficial 'guides' approach tourists claiming to be official. They demand high fees and may take you to overpriced shops.",
+      "howToAvoid": "Book guides through hotels or official tourism offices. Verify credentials.",
+      "ifHappens": "Politely decline and walk away. Do not engage in negotiation."
+    },
+    {
+      "id": "scam-002",
+      "title": "Taxi Without Meter",
+      "description": "Taxis without functioning meters charge inflated fares, especially to tourists.",
+      "howToAvoid": "Always insist on meter. Know approximate prices beforehand.",
+      "ifHappens": "Refuse to pay and call police (19) if necessary."
+    },
+    {
+      "id": "scam-003",
+      "title": "Souk Overpricing",
+      "description": "Vendors in tourist souks charge 3-5x normal prices to foreigners.",
+      "howToAvoid": "Know reference prices. Bargain respectfully. Shop in local markets.",
+      "ifHappens": "Walk away and compare prices elsewhere."
+    },
+    {
+      "id": "scam-004",
+      "title": "Currency Exchange Scams",
+      "description": "Unofficial money changers offer fake rates or short-change tourists.",
+      "howToAvoid": "Use official banks or ATMs. Avoid street changers.",
+      "ifHappens": "Count money carefully before leaving. Use official channels."
+    },
+    {
+      "id": "scam-005",
+      "title": "Photo Scams",
+      "description": "Someone poses for a photo, then demands payment or claims you owe them.",
+      "howToAvoid": "Ask permission before photographing people. Agree on price first.",
+      "ifHappens": "Politely refuse and move away."
+    }
+  ],
+  "usefulPhrases": {
+    "darija": [
+      { "english": "Hello", "darija": "السلام عليكم", "pronunciation": "Assalamu alaikum" },
+      { "english": "Thank you", "darija": "شكراً", "pronunciation": "Shukran" },
+      { "english": "How much?", "darija": "شنو الثمن؟", "pronunciation": "Shno athaman?" },
+      { "english": "Too expensive", "darija": "غالي بزاف", "pronunciation": "Ghali bzaf" },
+      { "english": "Water", "darija": "الماء", "pronunciation": "L'ma" },
+      { "english": "Help!", "darija": "ساعدني!", "pronunciation": "Sa'adni!" }
+    ],
+    "french": [
+      { "english": "Hello", "french": "Bonjour", "pronunciation": "Bon-zhoor" },
+      { "english": "Thank you", "french": "Merci", "pronunciation": "Mer-see" },
+      { "english": "How much?", "french": "Combien ça coûte?", "pronunciation": "Kom-bee-yan sa koot?" },
+      { "english": "Do you speak English?", "french": "Parlez-vous anglais?", "pronunciation": "Par-lay-voo ahn-glay?" },
+      { "english": "Water", "french": "Eau", "pronunciation": "Oh" }
+    ],
+    "arabic": [
+      { "english": "Hello", "arabic": "مرحبا", "pronunciation": "Marhaba" },
+      { "english": "Thank you", "arabic": "شكراً", "pronunciation": "Shukran" },
+      { "english": "Yes", "arabic": "نعم", "pronunciation": "Na'am" },
+      { "english": "No", "arabic": "لا", "pronunciation": "La" },
+      { "english": "Excuse me", "arabic": "عفواً", "pronunciation": "Afwan" }
+    ]
+  },
+  "guides": [
+    {
+      "id": "guide-001",
+      "name": "Ahmed Ben Youssef",
+      "nameAr": "أحمد بن يوسف",
+      "cityId": "marrakech",
+      "rating": 4.9,
+      "reviews": 127,
+      "languages": ["Arabic", "French", "English", "Spanish"],
+      "specialties": ["Medina Tours", "Atlas Mountains", "Cultural History"],
+      "bio": "Licensed guide with 15+ years experience. Passionate about Moroccan history and culture.",
+      "pricePerDay": 400,
+      "whatsapp": "+212612345678",
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400"
+    },
+    {
+      "id": "guide-002",
+      "name": "Fatima Al-Mansouri",
+      "nameAr": "فاطمة المنصوري",
+      "cityId": "fes",
+      "rating": 4.8,
+      "reviews": 94,
+      "languages": ["Arabic", "French", "English", "German"],
+      "specialties": ["Medina Navigation", "Tannery Tours", "Local Crafts"],
+      "bio": "Expert in Fès medina. Helps tourists navigate the 9,000+ streets safely.",
+      "pricePerDay": 350,
+      "whatsapp": "+212612345679",
+      "image": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400"
+    },
+    {
+      "id": "guide-003",
+      "name": "Hassan El-Fassi",
+      "nameAr": "حسن الفاسي",
+      "cityId": "chefchaouen",
+      "rating": 4.7,
+      "reviews": 68,
+      "languages": ["Arabic", "French", "English"],
+      "specialties": ["Blue City Photography", "Rif Mountains", "Hiking"],
+      "bio": "Local Chefchaouen guide. Best for photography and nature enthusiasts.",
+      "pricePerDay": 300,
+      "whatsapp": "+212612345680",
+      "image": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400"
+    },
+    {
+      "id": "guide-004",
+      "name": "Layla Bennani",
+      "nameAr": "ليلى بناني",
+      "cityId": "casablanca",
+      "rating": 4.6,
+      "reviews": 82,
+      "languages": ["French", "English", "Arabic"],
+      "specialties": ["Hassan II Mosque", "Coastal Tours", "Modern City"],
+      "bio": "Casablanca specialist. Knowledgeable about modern and traditional Morocco.",
+      "pricePerDay": 380,
+      "whatsapp": "+212612345681",
+      "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400"
+    }
+  ],
+  "sorties": [
+    {
+      "id": "sortie-001",
+      "cityId": "marrakech",
+      "title": "Sunset in the Atlas Mountains",
+      "description": "Join us for a scenic trek to watch the sunset from the Atlas Mountains. We'll visit a Berber village and share traditional tea.",
+      "date": "2026-03-28",
+      "time": "3:00 PM",
+      "duration": "4 hours",
+      "location": "Atlas Mountains, South of Marrakech",
+      "minParticipants": 4,
+      "maxParticipants": 12,
+      "currentParticipants": 7,
+      "level": "Intermediate",
+      "organizer": "Sarah",
+      "image": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400"
+    },
+    {
+      "id": "sortie-002",
+      "cityId": "marrakech",
+      "title": "Medina Food Tour",
+      "description": "Explore the best street food and hidden gems in Marrakech medina. Taste local specialties and learn about Moroccan cuisine.",
+      "date": "2026-03-25",
+      "time": "5:00 PM",
+      "duration": "3 hours",
+      "location": "Jemaa el-Fnaa, Marrakech",
+      "minParticipants": 3,
+      "maxParticipants": 8,
+      "currentParticipants": 5,
+      "level": "Beginner",
+      "organizer": "Marco",
+      "image": "https://images.unsplash.com/photo-1504674900967-a8f32de4a645?w=400"
+    },
+    {
+      "id": "sortie-003",
+      "cityId": "chefchaouen",
+      "title": "Blue City Photography Walk",
+      "description": "Capture the magic of Chefchaouen's blue medina. Perfect for photography enthusiasts. Golden hour included!",
+      "date": "2026-03-26",
+      "time": "4:00 PM",
+      "duration": "2.5 hours",
+      "location": "Chefchaouen Medina",
+      "minParticipants": 2,
+      "maxParticipants": 10,
+      "currentParticipants": 6,
+      "level": "Beginner",
+      "organizer": "Lisa",
+      "image": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400"
+    },
+    {
+      "id": "sortie-004",
+      "cityId": "fes",
+      "title": "Medina Navigation Challenge",
+      "description": "Get lost (safely!) in Fès medina with a group. Learn to navigate the 9,000+ streets and discover hidden courtyards.",
+      "date": "2026-03-27",
+      "time": "10:00 AM",
+      "duration": "3 hours",
+      "location": "Fès Medina",
+      "minParticipants": 3,
+      "maxParticipants": 8,
+      "currentParticipants": 4,
+      "level": "Intermediate",
+      "organizer": "Ahmed",
+      "image": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400"
+    }
+  ],
+  "foodPriceGuide": [
+    { "item": "Bottle of water (500ml)", "price": "3-5 MAD", "location": "Anywhere" },
+    { "item": "Fresh orange juice", "price": "5-8 MAD", "location": "Juice stand" },
+    { "item": "Mint tea", "price": "3-5 MAD", "location": "Café" },
+    { "item": "Coffee", "price": "5-8 MAD", "location": "Café" },
+    { "item": "Sandwich (msemen)", "price": "10-15 MAD", "location": "Street vendor" },
+    { "item": "Harira soup", "price": "8-12 MAD", "location": "Restaurant" },
+    { "item": "Tagine (main dish)", "price": "40-80 MAD", "location": "Restaurant" },
+    { "item": "Couscous", "price": "35-70 MAD", "location": "Restaurant" },
+    { "item": "Pastilla", "price": "30-60 MAD", "location": "Restaurant" },
+    { "item": "Grilled fish (per 100g)", "price": "30-50 MAD", "location": "Seafood restaurant" },
+    { "item": "Chicken skewer", "price": "15-25 MAD", "location": "Street vendor" },
+    { "item": "Falafel", "price": "8-12 MAD", "location": "Street vendor" },
+    { "item": "Bread (loaf)", "price": "1-2 MAD", "location": "Bakery" },
+    { "item": "Dates (1kg)", "price": "30-50 MAD", "location": "Market" },
+    { "item": "Almonds (1kg)", "price": "80-120 MAD", "location": "Market" },
+    { "item": "Spices (per 100g)", "price": "10-20 MAD", "location": "Souk" },
+    { "item": "Argan oil (250ml)", "price": "80-150 MAD", "location": "Market/Shop" },
+    { "item": "Honey (1kg)", "price": "100-200 MAD", "location": "Market" },
+    { "item": "Olive oil (1L)", "price": "40-80 MAD", "location": "Market" },
+    { "item": "Souvenir carpet (small)", "price": "200-500 MAD", "location": "Souk" }
+  ]
+}

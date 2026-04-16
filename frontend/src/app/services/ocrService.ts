@@ -13,20 +13,52 @@ export interface OcrProgress {
 
 const OCR_API_URL = import.meta.env.VITE_AI_OCR_API_URL as string | undefined;
 const OCR_API_KEY = import.meta.env.VITE_AI_OCR_API_KEY as string | undefined;
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
 export function isOcrConfigured() {
-  return Boolean(OCR_API_URL && OCR_API_KEY);
+  return Boolean(API_BASE || (OCR_API_URL && OCR_API_KEY));
 }
 
 export async function extractTextFromImage(
   imageSource: string | File | Blob,
   onProgress?: (progress: OcrProgress) => void
 ): Promise<OcrResult> {
-  if (isOcrConfigured()) {
-    return extractTextWithApi(imageSource);
+  try {
+    return await extractTextViaBackend(imageSource);
+  } catch {
+    if (OCR_API_URL && OCR_API_KEY) {
+      return extractTextWithApi(imageSource);
+    }
   }
 
   return extractTextWithTesseract(imageSource, onProgress);
+}
+
+async function extractTextViaBackend(imageSource: string | File | Blob): Promise<OcrResult> {
+  const formData = new FormData();
+
+  if (typeof imageSource === 'string') {
+    formData.append('image_url', imageSource);
+  } else {
+    formData.append('image', imageSource);
+  }
+
+  const response = await fetch(`${API_BASE}/ocr/extract`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error('Backend OCR request failed');
+  }
+
+  const data = await response.json();
+
+  return {
+    text: data.text || '',
+    confidence: data.confidence || 90,
+    language: data.language || 'auto',
+  };
 }
 
 async function extractTextWithApi(imageSource: string | File | Blob): Promise<OcrResult> {

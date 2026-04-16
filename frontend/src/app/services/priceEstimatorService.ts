@@ -20,6 +20,7 @@ export type EstimateResult = {
 
 const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY as string | undefined;
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
 async function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -162,8 +163,6 @@ export async function estimateViaBackend(
   };
   message?: string;
 }> {
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
-  
   const form = new FormData();
   form.append('image', file);
   if (options.country) form.append('country', options.country);
@@ -172,39 +171,15 @@ export async function estimateViaBackend(
   if (options.marketContext) form.append('market_context', options.marketContext);
   if (options.currency) form.append('currency', options.currency);
 
-  try {
-    const res = await fetch(`${API_BASE}/price/estimate-image`, {
-      method: 'POST',
-      body: form,
-    });
+  const res = await fetch(`${API_BASE}/price/estimate-image`, {
+    method: 'POST',
+    body: form,
+  });
 
-    if (res.ok) {
-      return await res.json();
-    }
-  } catch (error) {
-    console.warn('Backend unavailable, using direct Groq:', error);
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({})) as { message?: string };
+    throw new Error(error.message || 'Price estimation request failed');
   }
 
-  const groqResult = await estimatePriceFromImage(file, options.marketContext || 'souk');
-  
-  return {
-    status: 'OK',
-    identified_product: {
-      name: groqResult.name,
-      brand: groqResult.brand,
-    },
-    category: groqResult.category,
-    pricing: {
-      price_median: Math.round((groqResult.priceMin + groqResult.priceMax) / 2),
-      price_suggested: groqResult.suggestedPrice,
-      price_min: groqResult.priceMin,
-      price_max: groqResult.priceMax,
-    },
-    meta: {
-      confidence_identification: groqResult.confidence,
-      confidence_price: groqResult.confidence,
-      evidence_count: 0,
-      is_verified: false,
-    },
-  };
+  return await res.json();
 }

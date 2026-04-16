@@ -412,6 +412,20 @@ export type ApiActivity = {
   rating?: number | null;
   is_published: boolean;
   city?: ApiCity | null;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type ActivityPayload = {
+  city_id: number;
+  name: string;
+  slug: string;
+  description?: string;
+  duration_label?: string;
+  price_min?: number | null;
+  price_max?: number | null;
+  rating?: number | null;
+  is_published?: boolean;
 };
 
 export type ApiRestaurant = {
@@ -456,11 +470,13 @@ export async function fetchPlace(id: number) {
   return apiFetch<ApiResponse<ApiPlace>>(`/places/${id}`);
 }
 
-export async function fetchActivities(cityId?: number, search?: string) {
+export async function fetchActivities(cityId?: number, search?: string, publishedOnly = true) {
   const params = new URLSearchParams();
   if (cityId) params.set('city_id', cityId.toString());
   if (search) params.set('search', search);
-  params.set('is_published', '1');
+  if (publishedOnly) {
+    params.set('is_published', '1');
+  }
   params.set('sort', 'rating');
   params.set('direction', 'desc');
   const query = params.toString() ? `?${params.toString()}` : '';
@@ -469,6 +485,26 @@ export async function fetchActivities(cityId?: number, search?: string) {
 
 export async function fetchActivity(id: number) {
   return apiFetch<ApiResponse<ApiActivity>>(`/activities/${id}`);
+}
+
+export async function createActivity(payload: ActivityPayload, token: string) {
+  return apiFetch<ApiResponse<ApiActivity>>('/activities', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }, token);
+}
+
+export async function updateActivity(id: number, payload: ActivityPayload, token: string) {
+  return apiFetch<ApiResponse<ApiActivity>>(`/activities/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  }, token);
+}
+
+export async function deleteActivity(id: number, token: string) {
+  return apiFetch<ApiResponse<never>>(`/activities/${id}`, {
+    method: 'DELETE',
+  }, token);
 }
 
 export async function fetchRestaurants(cityId?: number, search?: string) {

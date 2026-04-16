@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             CountryCitySeeder::class,
             EmergencyContactSeeder::class,
             PlaceSeeder::class,
+            ActivitySeeder::class,
             TransportFareSeeder::class,
             ScamReportSeeder::class,
             UserSeeder::class,

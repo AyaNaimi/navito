@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -8,6 +8,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { useAppContext } from '../context/AppContext';
+import { fetchCities, updateMyProfile } from '../services/api';
 
 const joinSchema = z.object({
   fullName: z.string().min(3, 'Name must be at least 3 characters'),
@@ -20,7 +21,8 @@ type JoinFormValues = z.infer<typeof joinSchema>;
 
 export default function DriverJoin() {
   const navigate = useNavigate();
-  const { authMode, driverProfile, submitDriverRegistration } = useAppContext();
+  const { authMode, authToken, driverProfile, submitDriverRegistration } = useAppContext();
+  const [cities, setCities] = useState<Array<{ id: number; name: string }>>([]);
   const {
     register,
     handleSubmit,
@@ -41,8 +43,25 @@ export default function DriverJoin() {
     }
   }, [authMode, navigate]);
 
-  const onSubmit = (values: JoinFormValues) => {
+  useEffect(() => {
+    fetchCities()
+      .then((response) => setCities(response.data ?? []))
+      .catch(() => setCities([]));
+  }, [setCities]);
+
+  const onSubmit = async (values: JoinFormValues) => {
     submitDriverRegistration(values);
+    if (authToken) {
+      const matchedCity = cities.find((item: { name: string; id: number }) => item.name.toLowerCase() === values.city.toLowerCase());
+      await updateMyProfile({
+        driver_profile: {
+          city_id: matchedCity?.id ?? null,
+          phone: values.phone,
+          vehicle_type: values.vehicleType,
+          verification_status: 'documents_pending',
+        },
+      }, authToken).catch(() => undefined);
+    }
     navigate('/driver/verify');
   };
 

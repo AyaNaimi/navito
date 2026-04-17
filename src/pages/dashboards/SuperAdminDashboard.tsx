@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { Navigate } from "react-router-dom";
+import { useState } from "react";
 import MoroccoSuperAdminShell, {
   type SuperAdminNavId,
 } from "./superadmin/MoroccoSuperAdminShell";
@@ -14,11 +13,6 @@ import AdminSettings from "./superadmin/AdminSettings";
 
 export default function SuperAdminDashboard() {
   const [activeNav, setActiveNav] = useState<SuperAdminNavId>("dashboard");
-  const isAuthenticated = localStorage.getItem("superAdminAuth") === "true";
-
-  if (!isAuthenticated) {
-    return <Navigate to="/admin/login" replace />;
-  }
 
   return (
     <MoroccoSuperAdminShell activeNav={activeNav} onNavigate={setActiveNav}>
@@ -35,4 +29,3 @@ export default function SuperAdminDashboard() {
     </MoroccoSuperAdminShell>
   );
 }
-

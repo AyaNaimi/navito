@@ -30,8 +30,8 @@ const navItems: Array<{ id: GuideAdminNavId; label: string; icon: typeof LayoutD
 ];
 
 const mockNotifications = [
-  { id: 1, title: "Nouvelle réservation", desc: "Vous avez une nouvelle demande de visite guidée pour la Médina.", time: "2 heures" },
-  { id: 2, title: "Renouvellement d'accréditation", desc: "Votre badge de guide officiel expire bientôt.", time: "Hier" },
+  { id: 1, title: "Nouvelle rÃ©servation", desc: "Vous avez une nouvelle demande de visite guidÃ©e pour la MÃ©dina.", time: "2 heures" },
+  { id: 2, title: "Renouvellement d'accrÃ©ditation", desc: "Votre badge de guide officiel expire bientÃ´t.", time: "Hier" },
 ];
 
 type GuideAdminShellProps = {
@@ -61,14 +61,16 @@ export default function GuideAdminShell({
     setIsMobileMenuOpen(false);
   };
 
-  const { resetFlow } = useAppContext();
-  const userName = "Youssef B.";
-  const userEmail = "youssef.b@guide.ma";
+  const { logout, userEmail, userName } = useAppContext();
 
-  const handleLogout = () => {
-    localStorage.removeItem("guideAuth");
-    resetFlow();
-    navigate("/guide/login");
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login", { replace: true });
+    window.setTimeout(() => {
+      if (window.location.pathname.startsWith("/dashboard")) {
+        window.location.replace("/login");
+      }
+    }, 50);
   };
 
   return (
@@ -122,10 +124,10 @@ export default function GuideAdminShell({
                       </div>
                    </div>
                    <h4 className="text-sm font-black text-slate-900 mb-1">Guide Officiel</h4>
-                   <p className="text-[10px] text-slate-500 font-bold tracking-wider">Badge N° 9812A</p>
+                   <p className="text-[10px] text-slate-500 font-bold tracking-wider">Badge NÂ° 9812A</p>
                    
                    <button 
-                     onClick={() => toast.success("Statut mis à jour", { description: "Vous êtes désormais en mode hors ligne." })}
+                     onClick={() => toast.success("Statut mis Ã  jour", { description: "Vous Ãªtes dÃ©sormais en mode hors ligne." })}
                      className="mt-6 w-full py-2.5 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-95 shadow-xl shadow-slate-900/10"
                    >
                       Passer Hors Ligne
@@ -265,8 +267,8 @@ export default function GuideAdminShell({
                           <button onClick={(e) => { e.stopPropagation(); handleNavigate("profile"); closeAllMenus(); }} className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-[#00897B]/10 hover:text-[#00897B] text-xs font-black uppercase tracking-widest text-slate-500 transition-all">
                              <User className="size-4" /> Voir le profil
                           </button>
-                          <button onClick={(e) => { e.stopPropagation(); closeAllMenus(); handleLogout(); }} className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-rose-50 text-rose-600 text-xs font-black uppercase tracking-widest transition-all mt-2 group/logout">
-                             <LogOut className="size-4 group-hover/logout:rotate-12 transition-transform" /> Déconnexion
+                          <button onClick={(e) => { e.stopPropagation(); closeAllMenus(); void handleLogout(); }} className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-rose-50 text-rose-600 text-xs font-black uppercase tracking-widest transition-all mt-2 group/logout">
+                             <LogOut className="size-4 group-hover/logout:rotate-12 transition-transform" /> Deconnexion
                           </button>
                       </div>
                     </div>

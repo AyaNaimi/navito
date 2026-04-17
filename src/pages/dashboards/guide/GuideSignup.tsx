@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Map, ShieldCheck, MapPin, Phone, User, Mail, Compass, CheckCircle, ChevronRight, BookOpen, Camera, Utensils } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '../../../app/components/ui/button';
 import { Input } from '../../../app/components/ui/input';
 import { Label } from '../../../app/components/ui/label';
 import { useAppContext } from '../../../app/context/AppContext';
+import { buildSessionFromAuthResponse, fetchCities, registerRequest } from '../../../app/services/api';
 
 export default function GuideSignup() {
   const [formData, setFormData] = useState({
@@ -13,25 +15,48 @@ export default function GuideSignup() {
     phone: '',
     city: 'Marrakech',
     specialty: 'Culture & Histoire',
+    password: '',
+    confirmPassword: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { setUserSession, submitGuideRegistration } = useAppContext();
+  const { setUserSession } = useAppContext();
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    setTimeout(() => {
-        submitGuideRegistration({
-          fullName: formData.fullName,
-          email: formData.email,
+    try {
+      const citiesResponse = await fetchCities().catch(() => ({ data: [] as Array<{ id: number; name: string }> }));
+      const matchedCity = (citiesResponse.data ?? []).find((item) => item.name.toLowerCase() === formData.city.toLowerCase())
+        ?? (citiesResponse.data ?? [])[0];
+
+      const response = await registerRequest({
+        name: formData.fullName,
+        email: formData.email,
+        password: formData.password,
+        password_confirmation: formData.confirmPassword,
+        role: 'guide',
+        guide_profile: {
+          city_id: matchedCity?.id ?? null,
           phone: formData.phone,
-          city: formData.city
-        });
-        navigate('/guide/pending');
-        setIsLoading(false);
-    }, 1200);
+          bio: formData.specialty,
+          status: 'pending',
+        },
+      });
+
+      if (!response.user || !response.token) {
+        throw new Error('Reponse d inscription invalide.');
+      }
+
+      setUserSession(buildSessionFromAuthResponse(response.user, response.token));
+      toast.success('Compte guide cree avec succes.');
+      navigate('/dashboard/guide');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Impossible de creer le compte.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const specialties = [
@@ -177,6 +202,29 @@ export default function GuideSignup() {
                     Votre demande sera examinée par nos administrateurs. Vous recevrez une notification par email dès validation.
                   </p>
                </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Mot de passe</Label>
+                <Input
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData(p => ({ ...p, password: e.target.value }))}
+                  className="h-14 rounded-2xl bg-slate-50 border-0 focus:ring-4 focus:ring-[#00897B]/10 font-bold transition-all"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Confirmer le mot de passe</Label>
+                <Input
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData(p => ({ ...p, confirmPassword: e.target.value }))}
+                  className="h-14 rounded-2xl bg-slate-50 border-0 focus:ring-4 focus:ring-[#00897B]/10 font-bold transition-all"
+                  required
+                />
+              </div>
             </div>
 
             <Button type="submit" disabled={isLoading} className="h-16 w-full rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black uppercase tracking-widest transition-all shadow-xl shadow-slate-900/10 active:scale-[0.98]">

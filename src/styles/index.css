@@ -9,6 +9,10 @@ body,
   height: 100%;
 }
 
+:root {
+  --bottom-nav-height: 64px;
+}
+
 body {
   margin: 0;
   background-color: #F8FAFC;
@@ -41,6 +45,14 @@ body {
 
   .safe-area-bottom {
     padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .with-bottom-nav {
+    padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+  }
+
+  .bottom-nav-h {
+    height: var(--bottom-nav-height);
   }
 
   .animate-fade-in {

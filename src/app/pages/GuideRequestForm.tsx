@@ -1,13 +1,13 @@
-import { useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { ArrowLeft, Clock3, MapPin, Send, Star, UserRound } from 'lucide-react';
+import { ArrowLeft, Clock3, Mail, MapPin, Send, UserRound } from 'lucide-react';
 import BottomNav from '../components/BottomNav';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
-import { guides } from '../data/mockData';
 import { useAppContext } from '../context/AppContext';
+import { createGuideRequest, fetchCities, fetchDirectoryGuides, type ApiCity, type ApiDirectoryGuide } from '../services/api';
 
 const guidanceTypes = [
   'Historical tour',
@@ -21,8 +21,13 @@ const durations = ['2 hours', 'Half day', 'Full day', '2 days', 'Custom duration
 
 export default function GuideRequestForm() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { id } = useParams();
-  const { city, userRole } = useAppContext();
+  const { authMode, authToken, city, userRole } = useAppContext();
+  const [guides, setGuides] = useState<ApiDirectoryGuide[]>([]);
+  const [cities, setCities] = useState<ApiCity[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [form, setForm] = useState({
     guidanceType: guidanceTypes[0],
     duration: durations[1],
@@ -31,19 +36,96 @@ export default function GuideRequestForm() {
     notes: '',
   });
 
-  const guide = useMemo(() => guides.find((item) => String(item.id) === id), [id]);
+  useEffect(() => {
+    let cancelled = false;
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    Promise.all([fetchDirectoryGuides(), fetchCities()])
+      .then(([guidesResponse, citiesResponse]) => {
+        if (cancelled) {
+          return;
+        }
+
+        setGuides(guidesResponse.data ?? []);
+        setCities(citiesResponse.data ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setGuides([]);
+          setCities([]);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const guide = useMemo(() => guides.find((item) => String(item.id) === id), [guides, id]);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (authMode !== 'login' || !authToken) {
+      navigate(`/login?redirectTo=${encodeURIComponent(`${location.pathname}${location.search}`)}`);
+      return;
+    }
 
     if (userRole !== 'tourist') {
       toast.error('Only tourists can send guide requests from this interface');
       return;
     }
 
-    toast.success('Guide request submitted successfully');
-    navigate('/guide');
+    if (!guide) {
+      toast.error('Guide introuvable.');
+      return;
+    }
+
+    const matchedCity = cities.find((item) => item.name === (guide.city || city));
+    if (!matchedCity) {
+      toast.error('Ville du guide introuvable.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const composedNotes = [
+        `Type: ${form.guidanceType}`,
+        `Duree: ${form.duration}`,
+        `Point de rencontre: ${form.meetingPoint}`,
+        form.notes.trim() ? `Notes: ${form.notes.trim()}` : null,
+      ]
+        .filter(Boolean)
+        .join(' | ');
+
+      await createGuideRequest({
+        guide_id: guide.id,
+        city_id: matchedCity.id,
+        travel_date: form.date || undefined,
+        notes: composedNotes,
+      }, authToken);
+
+      toast.success(`Demande envoyee a ${guide.name}`);
+      navigate('/guide');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Impossible d'envoyer la demande.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="size-full bg-white/75 backdrop-blur-sm flex items-center justify-center p-6">
+        <div className="text-center text-gray-600">Chargement du guide reel...</div>
+      </div>
+    );
+  }
 
   if (!guide) {
     return (
@@ -73,27 +155,32 @@ export default function GuideRequestForm() {
       <div className="flex-1 overflow-auto px-6 py-6">
         <div className="mb-5 rounded-2xl border border-gray-200 bg-white p-4">
           <div className="flex gap-4">
-            <img src={guide.image} alt={guide.name} className="h-16 w-16 rounded-full object-cover" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#0D9488]/10 text-[#0D9488]">
+              <UserRound className="h-8 w-8" />
+            </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <h2 className="font-bold text-gray-900">{guide.name}</h2>
                   <p className="text-sm text-gray-500">{guide.city}</p>
                 </div>
-                <div className="flex items-center gap-1 text-sm font-semibold text-gray-900">
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  {guide.rating}
-                </div>
+                <span className="rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-emerald-700">
+                  {guide.status ?? 'approved'}
+                </span>
               </div>
 
               <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-gray-600">
                 <div className="flex items-center gap-1">
                   <UserRound className="h-4 w-4 text-[#0D9488]" />
-                  <span>{guide.specialty}</span>
+                  <span>{guide.bio || 'Guide local disponible'}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Clock3 className="h-4 w-4 text-[#0D9488]" />
-                  <span>{guide.responseTime}</span>
+                  <span>{guide.phone || 'Telephone non renseigne'}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Mail className="h-4 w-4 text-[#0D9488]" />
+                  <span>{guide.email}</span>
                 </div>
               </div>
             </div>
@@ -178,8 +265,12 @@ export default function GuideRequestForm() {
             />
           </div>
 
-          <Button type="submit" className="h-12 w-full rounded-xl bg-[#0D9488] hover:bg-[#0D9488]/90">
-            Send Request
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="h-12 w-full rounded-xl bg-[#0D9488] hover:bg-[#0D9488]/90"
+          >
+            {isSubmitting ? 'Envoi en cours...' : 'Envoyer la demande'}
             <Send className="ml-2 h-4 w-4" />
           </Button>
         </form>

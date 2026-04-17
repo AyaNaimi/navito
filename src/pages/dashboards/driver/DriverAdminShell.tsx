@@ -15,7 +15,9 @@ import {
   Navigation
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { cn } from "../../../app/components/ui/utils";
+import { useAppContext } from "../../../app/context/AppContext";
 
 export type DriverAdminNavId = "dashboard" | "messages" | "profile" | "reviews";
 
@@ -27,8 +29,8 @@ const navItems: Array<{ id: DriverAdminNavId; label: string; icon: typeof Layout
 ];
 
 const mockNotifications = [
-  { id: 1, title: "Assurance Expire Bientôt", desc: "Votre assurance professionnelle expire dans 15 jours. Veuillez la renouveler.", time: "2 heures" },
-  { id: 2, title: "Visite Technique Requise", desc: "N'oubliez pas l'inspection annuelle de votre véhicule prévue le mois prochain.", time: "Hier" },
+  { id: 1, title: "Assurance Expire BientÃ´t", desc: "Votre assurance professionnelle expire dans 15 jours. Veuillez la renouveler.", time: "2 heures" },
+  { id: 2, title: "Visite Technique Requise", desc: "N'oubliez pas l'inspection annuelle de votre vÃ©hicule prÃ©vue le mois prochain.", time: "Hier" },
 ];
 
 type DriverAdminShellProps = {
@@ -47,6 +49,7 @@ export default function DriverAdminShell({
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+  const { userEmail, userName, logout } = useAppContext();
 
   const closeAllMenus = () => {
     setShowNotifications(false);
@@ -56,6 +59,20 @@ export default function DriverAdminShell({
   const handleNavigate = (id: DriverAdminNavId) => {
     onNavigate(id);
     setIsMobileMenuOpen(false);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/login", { replace: true });
+      window.setTimeout(() => {
+        if (window.location.pathname.startsWith("/dashboard")) {
+          window.location.replace("/login");
+        }
+      }, 50);
+    } catch {
+      toast.error("Impossible de se deconnecter.");
+    }
   };
 
   return (
@@ -220,7 +237,7 @@ export default function DriverAdminShell({
                     <div className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full bg-[#00897B] border-2 border-white shadow-sm" />
                   </div>
                   <div className="hidden flex-col text-left lg:flex">
-                    <span className="text-sm font-black text-slate-900 group-hover:text-[#00897B] transition-colors leading-tight">Samrat A.</span>
+                    <span className="text-sm font-black text-slate-900 group-hover:text-[#00897B] transition-colors leading-tight">{userName}</span>
                     <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Driver</span>
                   </div>
                   <ChevronDown className={cn("hidden md:block size-4 text-slate-400 transition-transform", showProfileMenu && "rotate-180")} />
@@ -231,16 +248,16 @@ export default function DriverAdminShell({
                     <div className="p-6 bg-slate-50/50 flex items-center gap-4">
                        <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Samrat" className="size-12 rounded-2xl bg-white shadow-sm border border-slate-100" alt="Profile" />
                        <div className="flex-1 overflow-hidden">
-                          <p className="text-sm font-black text-slate-900 truncate">Samrat Alami</p>
-                          <p className="text-[10px] font-bold text-slate-500 truncate">driver@navito.ma</p>
+                          <p className="text-sm font-black text-slate-900 truncate">{userName}</p>
+                          <p className="text-[10px] font-bold text-slate-500 truncate">{userEmail}</p>
                        </div>
                     </div>
                     <div className="p-3 space-y-1">
                         <button onClick={() => { handleNavigate("profile"); closeAllMenus(); }} className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-[#00897B]/10 hover:text-[#00897B] text-xs font-black uppercase tracking-widest text-slate-500 transition-all">
                            <User className="size-4" /> Voir le profil
                         </button>
-                        <button onClick={() => { closeAllMenus(); navigate("/driver/login"); }} className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-rose-50 text-rose-600 text-xs font-black uppercase tracking-widest transition-all mt-2 group/logout">
-                           <LogOut className="size-4 group-hover/logout:rotate-12 transition-transform" /> Déconnexion
+                        <button type="button" onClick={(e) => { e.stopPropagation(); closeAllMenus(); void handleLogout(); }} className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-rose-50 text-rose-600 text-xs font-black uppercase tracking-widest transition-all mt-2 group/logout">
+                           <LogOut className="size-4 group-hover/logout:rotate-12 transition-transform" /> Deconnexion
                         </button>
                     </div>
                   </div>

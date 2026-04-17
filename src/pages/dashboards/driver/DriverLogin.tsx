@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Eye, EyeOff, Navigation, Lock, User, CheckCircle2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '../../../app/components/ui/button';
 import { Input } from '../../../app/components/ui/input';
 import { Label } from '../../../app/components/ui/label';
 import { useAppContext } from '../../../app/context/AppContext';
+import { buildSessionFromAuthResponse, loginRequest } from '../../../app/services/api';
 
 export default function DriverLogin() {
   const [email, setEmail] = useState('');
@@ -12,26 +14,37 @@ export default function DriverLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { setUserSession, driverVerificationStatus, setDriverVerificationStatus } = useAppContext();
+  const { setUserSession } = useAppContext();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Simulate login delay
-    setTimeout(() => {
-        // Automatically verify for demo purposes
-        setDriverVerificationStatus('verified');
 
-        setUserSession({
-            name: email.split('@')[0] || 'Chauffeur Navito',
-            email,
-            role: 'driver',
-        });
+    try {
+      const response = await loginRequest({ email, password, role: 'driver' });
 
+      if (!response.user || !response.token) {
+        throw new Error('Reponse de connexion invalide.');
+      }
+
+      setUserSession(buildSessionFromAuthResponse(response.user, response.token));
+
+      const driverProfile = response.user.driver_profile;
+      const profileComplete = Boolean(driverProfile?.phone && driverProfile?.vehicle_type && driverProfile?.city?.name);
+      const verificationStatus = driverProfile?.verification_status;
+
+      if (profileComplete) {
         navigate('/dashboard/driver');
-        setIsLoading(false);
-    }, 1000);
+      } else if (!verificationStatus || verificationStatus === 'none') {
+        navigate('/driver/join');
+      } else {
+        navigate('/driver/pending');
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Connexion impossible.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

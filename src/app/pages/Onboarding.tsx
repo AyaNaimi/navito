@@ -32,14 +32,14 @@ export default function Onboarding() {
       return;
     }
 
-    navigate('/language');
+    navigate('/welcome');
   };
 
   return (
     <div className="size-full bg-white/75 backdrop-blur-sm flex flex-col">
       <div className="p-6 flex justify-end">
         <button
-          onClick={() => navigate('/language')}
+          onClick={() => navigate('/welcome')}
           className="text-sm font-medium text-gray-600 hover:text-gray-900"
         >
           Passer

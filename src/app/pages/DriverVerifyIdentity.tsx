@@ -5,10 +5,11 @@ import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { useAppContext } from '../context/AppContext';
+import { updateMyProfile } from '../services/api';
 
 export default function DriverVerifyIdentity() {
   const navigate = useNavigate();
-  const { authMode, driverVerificationStatus, submitDriverDocuments } = useAppContext();
+  const { authMode, authToken, driverVerificationStatus, submitDriverDocuments } = useAppContext();
   const [documents, setDocuments] = useState<{ license: File | null; insurance: File | null }>({
     license: null,
     insurance: null,
@@ -39,13 +40,20 @@ export default function DriverVerifyIdentity() {
     setErrors((prev) => ({ ...prev, [field]: validateFile(file) }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const licenseError = validateFile(documents.license);
     const insuranceError = validateFile(documents.insurance);
     setErrors({ license: licenseError, insurance: insuranceError });
     if (licenseError || insuranceError) return;
 
     submitDriverDocuments();
+    if (authToken) {
+      await updateMyProfile({
+        driver_profile: {
+          verification_status: 'pending',
+        },
+      }, authToken).catch(() => undefined);
+    }
     navigate('/driver/pending');
   };
 

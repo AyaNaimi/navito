@@ -52,7 +52,7 @@ export default function LanguageSelector() {
         <Button
           onClick={() => {
             setLanguage(selectedLanguage);
-            navigate('/country');
+            navigate('/welcome');
           }}
           className="h-12 w-full rounded-xl bg-[#0D9488] text-white hover:bg-[#0D9488]/90"
         >

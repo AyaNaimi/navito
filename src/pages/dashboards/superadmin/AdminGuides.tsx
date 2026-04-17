@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Compass,
   Search,
@@ -26,6 +26,9 @@ import {
 import { Card, CardContent, CardHeader } from "../../../app/components/ui/card";
 import { cn } from "../../../app/components/ui/utils";
 import { type SuperAdminNavId } from "./MoroccoSuperAdminShell";
+import { toast } from "sonner";
+import { useAppContext } from "../../../app/context/AppContext";
+import { fetchPendingGuides, updateGuideApproval, type ApiPendingGuide } from "../../../app/services/api";
 
 type Guide = {
   id: string;
@@ -42,7 +45,7 @@ type Guide = {
 };
 
 type PendingGuide = {
-  id: string;
+  id: string | number;
   name: string;
   email: string;
   phone: string;
@@ -152,6 +155,7 @@ const langLabel = (code: string) => {
 };
 
 export default function AdminGuides({ onNavigate }: { onNavigate: (id: SuperAdminNavId) => void }) {
+  const { authToken } = useAppContext();
   const [guides, setGuides] = useState<Guide[]>(initialGuides);
   const [pending, setPending] = useState<PendingGuide[]>(initialPending);
   const [selectedGuide, setSelectedGuide] = useState<Guide | null>(null);
@@ -159,6 +163,33 @@ export default function AdminGuides({ onNavigate }: { onNavigate: (id: SuperAdmi
   const [viewDocGuide, setViewDocGuide] = useState<PendingGuide | null>(null);
   const [showDocModal, setShowDocModal] = useState(false);
   const [previewDoc, setPreviewDoc] = useState<{name: string; url: string} | null>(null);
+
+  useEffect(() => {
+    if (!authToken) return;
+
+    fetchPendingGuides(authToken)
+      .then((response) => {
+        const livePending = (response.data ?? []).map((item: ApiPendingGuide): PendingGuide => ({
+          id: item.id,
+          name: item.name,
+          email: item.email,
+          phone: item.phone ?? "N/A",
+          city: item.city ?? "N/A",
+          languages: ["Fr", "Ar"],
+          submittedAt: item.submitted_at ? new Date(item.submitted_at).toLocaleString() : "Pending",
+          avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${encodeURIComponent(item.name)}`,
+          documents: [
+            { name: "National ID", submitted: true },
+            { name: "Guide Certification", submitted: true },
+            { name: "First Aid Certificate", submitted: true },
+          ],
+        }));
+        setPending(livePending);
+      })
+      .catch(() => {
+        // Keep local fallback data for demo mode.
+      });
+  }, [authToken]);
 
   const filtered = guides
     .filter((g) => g.status === "verified")
@@ -168,7 +199,13 @@ export default function AdminGuides({ onNavigate }: { onNavigate: (id: SuperAdmi
         g.city.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-  const handleConfirm = (p: PendingGuide) => {
+  const handleConfirm = async (p: PendingGuide) => {
+    if (authToken && typeof p.id === "number") {
+      await updateGuideApproval(p.id, "approved", authToken).catch((error) => {
+        toast.error(error instanceof Error ? error.message : "Unable to approve guide.");
+      });
+    }
+
     const newGuide: Guide = {
       id: "G-" + String(guides.length + 1).padStart(3, "0"),
       name: p.name,
@@ -184,10 +221,17 @@ export default function AdminGuides({ onNavigate }: { onNavigate: (id: SuperAdmi
     };
     setGuides((prev) => [...prev, newGuide]);
     setPending((prev) => prev.filter((x) => x.id !== p.id));
+    toast.success("Guide approved.");
   };
 
-  const handleReject = (id: string) => {
+  const handleReject = async (id: string | number) => {
+    if (authToken && typeof id === "number") {
+      await updateGuideApproval(id, "rejected", authToken).catch((error) => {
+        toast.error(error instanceof Error ? error.message : "Unable to reject guide.");
+      });
+    }
     setPending((prev) => prev.filter((x) => x.id !== id));
+    toast.success("Guide request rejected.");
   };
 
   return (

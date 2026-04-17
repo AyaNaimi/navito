@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "../../../app/components/ui/utils";
+import { useAppContext } from "../../../app/context/AppContext";
 
 export type SuperAdminNavId = "dashboard" | "packages" | "calendar" | "visitors" | "guides" | "drivers" | "messages" | "settings";
 
@@ -57,6 +58,7 @@ export default function MoroccoSuperAdminShell({
   const [selectedNotification, setSelectedNotification] = useState<typeof mockNotifications[0] | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+  const { logout } = useAppContext();
 
   const closeAllMenus = () => {
     setShowNotifications(false);
@@ -69,9 +71,9 @@ export default function MoroccoSuperAdminShell({
     setIsMobileMenuOpen(false);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("superAdminAuth");
-    navigate("/admin/login");
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login", { replace: true });
   };
 
   return (
@@ -160,7 +162,7 @@ export default function MoroccoSuperAdminShell({
 
               <div className="p-6 border-t border-slate-50 mt-auto">
                  <button 
-                  onClick={handleLogout}
+                  onClick={() => void handleLogout()}
                   className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-red-50 text-red-600 text-xs font-black uppercase tracking-widest hover:bg-red-100 transition-colors"
                  >
                     <LogOut className="size-4" /> Sign Out
@@ -301,7 +303,7 @@ export default function MoroccoSuperAdminShell({
                              <Settings className="size-4" /> Settings
                           </button>
                           <button 
-                            onClick={handleLogout}
+                            onClick={() => void handleLogout()}
                             className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-red-50 text-red-600 text-xs font-black uppercase tracking-widest transition-all mt-2 group/logout"
                           >
                              <LogOut className="size-4 group-hover/logout:rotate-12 transition-transform" /> Sign Out

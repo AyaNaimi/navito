@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { useAppContext, type UserRole } from '../context/AppContext';
 import { getDashboardPathForRole } from '../components/RequireAuth';
-
-
+import { roleOptions } from '../data/roleOptions';
+import { useAppContext, type UserRole } from '../context/AppContext';
+import { buildSessionFromAuthResponse, registerRequest } from '../services/api';
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -17,32 +18,53 @@ export default function Register() {
     confirmPassword: '',
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [selectedRole] = useState<UserRole>('tourist');
+  const [selectedRole, setSelectedRole] = useState<UserRole>('tourist');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { setUserSession } = useAppContext();
+  const { language, setUserSession } = useAppContext();
   const redirectTo = new URLSearchParams(location.search).get('redirectTo') || '/country';
   const isTouristGuideRequestFlow = redirectTo.startsWith('/guide/request/');
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    const effectiveRole = isTouristGuideRequestFlow ? 'tourist' : selectedRole;
+    setIsSubmitting(true);
 
-    setUserSession({
-      name: formData.name,
-      email: formData.email,
-      role: effectiveRole,
-    });
+    try {
+      const effectiveRole = isTouristGuideRequestFlow ? 'tourist' : selectedRole;
+      const response = await registerRequest({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        password_confirmation: formData.confirmPassword,
+        role: effectiveRole,
+        preferred_language: language,
+      });
 
-    if (effectiveRole === 'driver') {
-      navigate('/driver/join');
-      return;
+      if (!response.user || !response.token) {
+        throw new Error('Reponse d inscription invalide.');
+      }
+
+      setUserSession(buildSessionFromAuthResponse(response.user, response.token));
+
+      toast.success('Compte cree avec succes.');
+
+      if (effectiveRole === 'driver') {
+        navigate('/driver/join');
+        return;
+      }
+
+      if (redirectTo === '/country' && (effectiveRole === 'guide' || effectiveRole === 'super_admin')) {
+        navigate(getDashboardPathForRole(effectiveRole));
+        return;
+      }
+
+      navigate('/country');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Impossible de creer le compte.');
+    } finally {
+      setIsSubmitting(false);
     }
-    if (redirectTo === '/country' && (effectiveRole === 'guide' || effectiveRole === 'super_admin')) {
-      navigate(getDashboardPathForRole(effectiveRole));
-      return;
-    }
-    navigate(redirectTo === '/country' && effectiveRole !== 'tourist' ? '/profile' : redirectTo);
   };
 
   return (
@@ -61,12 +83,33 @@ export default function Register() {
             <p className="mt-1 text-gray-600">
               {isTouristGuideRequestFlow
                 ? 'Creez un compte touriste pour envoyer votre demande directement au guide.'
-                : 'Inscrivez-vous puis selectionnez votre pays et votre ville.'}
+                : 'Choisissez votre role des le debut pour declencher le bon parcours utilisateur.'}
             </p>
           </div>
 
           <form onSubmit={handleRegister} className="space-y-4">
-
+            {!isTouristGuideRequestFlow && (
+              <div className="space-y-2">
+                <Label>Role</Label>
+                <div className="grid gap-2">
+                  {roleOptions.map((role) => (
+                    <button
+                      key={role.value}
+                      type="button"
+                      onClick={() => setSelectedRole(role.value)}
+                      className={`rounded-2xl border p-3 text-left transition-colors ${
+                        selectedRole === role.value
+                          ? 'border-[#0D9488] bg-[#0D9488]/5'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <p className="font-medium text-gray-900">{role.label}</p>
+                      <p className="mt-1 text-sm text-gray-600">{role.description}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="name">Nom complet</Label>
@@ -129,8 +172,12 @@ export default function Register() {
               />
             </div>
 
-            <Button type="submit" className="h-12 w-full rounded-xl bg-[#0D9488] text-white hover:bg-[#0D9488]/90">
-              Creer le compte
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="h-12 w-full rounded-xl bg-[#0D9488] text-white hover:bg-[#0D9488]/90"
+            >
+              {isSubmitting ? 'Creation en cours...' : 'Creer le compte'}
             </Button>
           </form>
         </div>

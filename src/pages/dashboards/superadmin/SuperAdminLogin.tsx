@@ -1,17 +1,37 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Lock, User, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
+import { useAppContext } from "../../../app/context/AppContext";
+import { buildSessionFromAuthResponse, loginRequest } from "../../../app/services/api";
 
 export default function SuperAdminLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const { setUserSession } = useAppContext();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem("superAdminAuth", "true");
-    navigate("/dashboard/superadmin");
+    setIsSubmitting(true);
+
+    try {
+      const response = await loginRequest({ email, password, role: "super_admin" });
+
+      if (!response.user || !response.token) {
+        throw new Error("Reponse de connexion invalide.");
+      }
+
+      setUserSession(buildSessionFromAuthResponse(response.user, response.token));
+      toast.success("Connexion administrateur reussie.");
+      navigate("/dashboard/superadmin");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Connexion impossible.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -70,9 +90,10 @@ export default function SuperAdminLogin() {
 
             <button
               type="submit"
+              disabled={isSubmitting}
               className="w-full h-14 mt-8 rounded-2xl bg-[#0da08b] text-white font-black text-xs uppercase tracking-[0.2em] transition-all hover:bg-[#0d8a78] hover:shadow-2xl hover:shadow-[#0da08b]/20 active:scale-[0.98]"
             >
-              Se Connecter au Dashboard
+              {isSubmitting ? "Connexion..." : "Se Connecter au Dashboard"}
             </button>
           </form>
 

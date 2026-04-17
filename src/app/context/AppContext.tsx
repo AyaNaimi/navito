@@ -1,9 +1,11 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { logoutRequest } from '../services/api';
 
 type AuthMode = 'guest' | 'login';
 type ExploreMode = 'city' | 'current-location';
 export type UserRole = 'tourist' | 'guide' | 'driver' | 'super_admin';
-export type DriverVerificationStatus = 'none' | 'documents_pending' | 'pending' | 'verified';
+export type DriverVerificationStatus = 'none' | 'documents_pending' | 'pending' | 'verified' | 'rejected';
+type GuideVerificationStatus = 'none' | 'pending' | 'approved' | 'rejected';
 
 type DriverProfile = {
   fullName: string;
@@ -14,9 +16,22 @@ type DriverProfile = {
   totalTrips: number;
 };
 
+type UserSessionPayload = {
+  name: string;
+  email: string;
+  role: UserRole;
+  token?: string | null;
+  country?: string;
+  city?: string;
+  driverVerificationStatus?: DriverVerificationStatus;
+  guideVerificationStatus?: GuideVerificationStatus;
+  driverProfile?: Partial<DriverProfile> | null;
+};
+
 type AppState = {
   language: string;
   authMode: AuthMode | null;
+  authToken: string | null;
   userName: string;
   userEmail: string;
   userRole: UserRole;
@@ -25,14 +40,14 @@ type AppState = {
   exploreMode: ExploreMode;
   currentPosition: { lat: number; lng: number } | null;
   driverVerificationStatus: DriverVerificationStatus;
-  guideVerificationStatus: DriverVerificationStatus;
+  guideVerificationStatus: GuideVerificationStatus;
   driverProfile: DriverProfile | null;
 };
 
 type AppContextValue = AppState & {
   setLanguage: (language: string) => void;
   setAuthMode: (mode: AuthMode) => void;
-  setUserSession: (session: { name: string; email: string; role: UserRole }) => void;
+  setUserSession: (session: UserSessionPayload) => void;
   submitDriverRegistration: (payload: {
     fullName: string;
     phone: string;
@@ -47,11 +62,12 @@ type AppContextValue = AppState & {
   }) => void;
   submitDriverDocuments: () => void;
   setDriverVerificationStatus: (status: DriverVerificationStatus) => void;
-  setGuideVerificationStatus: (status: DriverVerificationStatus) => void;
+  setGuideVerificationStatus: (status: GuideVerificationStatus) => void;
   updateDriverProfile: (payload: Partial<Pick<DriverProfile, 'fullName' | 'phone' | 'vehicleType' | 'city'>>) => void;
   setCountry: (country: string) => void;
   setCity: (city: string) => void;
   useCurrentLocation: (position?: { lat: number; lng: number } | null) => void;
+  logout: () => Promise<void>;
   resetFlow: () => void;
 };
 
@@ -60,6 +76,7 @@ const STORAGE_KEY = 'navito-app-state';
 const defaultState: AppState = {
   language: 'fr',
   authMode: null,
+  authToken: null,
   userName: 'Voyageur Navito',
   userEmail: 'travel@navito.app',
   userRole: 'tourist',
@@ -99,14 +116,45 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AppContextValue>(() => ({
     ...state,
     setLanguage: (language) => setState((current) => ({ ...current, language })),
-    setAuthMode: (authMode) => setState((current) => ({ ...current, authMode })),
-    setUserSession: ({ name, email, role }) =>
+    setAuthMode: (authMode) =>
+      setState((current) => ({
+        ...current,
+        authMode,
+        authToken: authMode === 'guest' ? null : current.authToken,
+        userRole: authMode === 'guest' ? 'tourist' : current.userRole,
+      })),
+    setUserSession: ({
+      name,
+      email,
+      role,
+      token,
+      country,
+      city,
+      driverVerificationStatus,
+      guideVerificationStatus,
+      driverProfile,
+    }) =>
       setState((current) => ({
         ...current,
         authMode: 'login',
+        authToken: token ?? current.authToken,
         userName: name,
         userEmail: email,
         userRole: role,
+        country: country ?? current.country,
+        city: city ?? current.city,
+        driverVerificationStatus: driverVerificationStatus ?? current.driverVerificationStatus,
+        guideVerificationStatus: guideVerificationStatus ?? current.guideVerificationStatus,
+        driverProfile: role === 'driver'
+          ? {
+              fullName: driverProfile?.fullName ?? name,
+              phone: driverProfile?.phone ?? current.driverProfile?.phone ?? '',
+              vehicleType: driverProfile?.vehicleType ?? current.driverProfile?.vehicleType ?? '',
+              city: driverProfile?.city ?? city ?? current.driverProfile?.city ?? '',
+              rating: driverProfile?.rating ?? current.driverProfile?.rating ?? 4.9,
+              totalTrips: driverProfile?.totalTrips ?? current.driverProfile?.totalTrips ?? 0,
+            }
+          : current.driverProfile,
       })),
     submitDriverRegistration: ({ fullName, phone, vehicleType, city }) =>
       setState((current) => ({
@@ -174,10 +222,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
     useCurrentLocation: (currentPosition) =>
       setState((current) => ({
         ...current,
-        city: '',
+        city: current.city,
         exploreMode: 'current-location',
         currentPosition: currentPosition ?? current.currentPosition,
       })),
+    logout: async () => {
+      const currentToken = state.authToken;
+
+      if (currentToken) {
+        try {
+          await logoutRequest(currentToken);
+        } catch {
+          // Even if the API logout fails, we still clear the local session.
+        }
+      }
+
+      setState((current) => ({
+        ...defaultState,
+        language: current.language,
+      }));
+    },
     resetFlow: () => setState(defaultState),
   }), [state]);
 

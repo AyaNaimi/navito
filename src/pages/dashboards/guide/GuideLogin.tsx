@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Lock, User, Map, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { useAppContext } from "../../../app/context/AppContext";
 import { Button } from "../../../app/components/ui/button";
+import { buildSessionFromAuthResponse, loginRequest } from "../../../app/services/api";
 
 export default function GuideLogin() {
   const [email, setEmail] = useState("");
@@ -10,37 +12,32 @@ export default function GuideLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { setUserSession, userEmail, guideVerificationStatus } = useAppContext();
+  const { setUserSession } = useAppContext();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulated login delay
-    setTimeout(() => {
-      // For demo: if they use the registered email or the default mock
-      const isRegisteredUser = email.toLowerCase() === userEmail?.toLowerCase();
-      const isMockUser = email === "guide@navito.com" && password === "password123";
+    try {
+      const response = await loginRequest({ email, password, role: "guide" });
 
-      if (isRegisteredUser || isMockUser) {
-        // Set session
-        setUserSession({
-          name: isRegisteredUser ? email.split('@')[0] : "Guide Expert",
-          email: email,
-          role: 'guide'
-        });
-
-        // Redirect based on status
-        if (isMockUser || guideVerificationStatus === 'verified') {
-          navigate("/dashboard/guide");
-        } else {
-          navigate("/guide/pending");
-        }
-      } else {
-        alert("Utilisateur non trouvé. Veuillez vous inscrire d'abord.");
+      if (!response.user || !response.token) {
+        throw new Error("Reponse de connexion invalide.");
       }
+
+      setUserSession(buildSessionFromAuthResponse(response.user, response.token));
+
+      const profileComplete = Boolean(response.user.guide_profile?.city?.name);
+      if (profileComplete) {
+        navigate("/dashboard/guide");
+      } else {
+        navigate("/guide/pending");
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Connexion impossible.");
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -97,10 +94,6 @@ export default function GuideLogin() {
               </div>
             </div>
             
-            <div className="text-xs text-center text-slate-500">
-                Mock: <span className="font-bold">guide@navito.com</span> / <span className="font-bold">password123</span>
-            </div>
-
             <Button
               type="submit"
               disabled={isLoading}

@@ -1,62 +1,97 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { useAppContext, type UserRole } from '../context/AppContext';
 import { getDashboardPathForRole } from '../components/RequireAuth';
-
-
+import { useAppContext, type UserRole } from '../context/AppContext';
+import { buildSessionFromAuthResponse, loginRequest } from '../services/api';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [selectedRole] = useState<UserRole>('tourist');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { setUserSession, driverProfile, driverVerificationStatus } = useAppContext();
+  const { setAuthMode, setUserSession } = useAppContext();
 
   const redirectTo = useMemo(() => {
     const params = new URLSearchParams(location.search);
     return params.get('redirectTo') || '/country';
   }, [location.search]);
+
   const isTouristGuideRequestFlow = redirectTo.startsWith('/guide/request/');
+  const canContinueAsGuest = redirectTo === '/country';
 
+  const isDriverProfileComplete = (user: { driver_profile?: { phone?: string | null; vehicle_type?: string | null; city?: { name?: string } | null } | null }) => {
+    const profile = user.driver_profile;
+    return Boolean(profile?.phone && profile?.vehicle_type && profile?.city?.name);
+  };
 
+  const isGuideProfileComplete = (user: { guide_profile?: { city?: { name?: string } | null } | null }) => {
+    return Boolean(user.guide_profile?.city?.name);
+  };
 
-  const getPostLoginPath = () => {
+  const getPostLoginPath = (
+    role: UserRole,
+    user: {
+      driver_profile?: { phone?: string | null; vehicle_type?: string | null; city?: { name?: string } | null } | null;
+      guide_profile?: { city?: { name?: string } | null } | null;
+    },
+    verificationStatus?: string,
+  ) => {
     if (redirectTo !== '/country') {
       return redirectTo;
     }
 
-    const effectiveRole = isTouristGuideRequestFlow ? 'tourist' : selectedRole;
-    if (effectiveRole === 'driver') {
-      if (!driverProfile || driverVerificationStatus === 'none') {
-        return '/driver/join';
-      }
-      if (driverVerificationStatus === 'verified') {
+    if (role === 'driver') {
+      if (isDriverProfileComplete(user)) {
         return '/dashboard/driver';
+      }
+      if (!verificationStatus || verificationStatus === 'none') {
+        return '/driver/join';
       }
       return '/driver/pending';
     }
 
-    if (effectiveRole === 'guide' || effectiveRole === 'super_admin') {
-      return getDashboardPathForRole(effectiveRole);
+    if (role === 'guide') {
+      return isGuideProfileComplete(user) ? '/dashboard/guide' : '/guide/pending';
     }
 
-    return effectiveRole === 'tourist' ? '/country' : '/profile';
+    if (role === 'super_admin') {
+      return getDashboardPathForRole(role);
+    }
+
+    return '/country';
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setUserSession({
-      name: email.split('@')[0] || 'Navito User',
-      email,
-      role: isTouristGuideRequestFlow ? 'tourist' : selectedRole,
-    });
-    navigate(getPostLoginPath());
+    setIsSubmitting(true);
+
+    try {
+      const response = await loginRequest({
+        email,
+        password,
+        role: isTouristGuideRequestFlow ? 'tourist' : undefined,
+      });
+
+      if (!response.user || !response.token) {
+        throw new Error('Reponse de connexion invalide.');
+      }
+
+      setUserSession(buildSessionFromAuthResponse(response.user, response.token));
+
+      toast.success('Connexion reussie.');
+      navigate(getPostLoginPath(response.user.role, response.user, response.user.driver_profile?.verification_status));
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Impossible de se connecter.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -73,14 +108,12 @@ export default function Login() {
               {isTouristGuideRequestFlow
                 ? 'Connectez-vous ou inscrivez-vous pour envoyer votre demande directement au guide.'
                 : redirectTo === '/country'
-                ? 'Connectez-vous pour synchroniser votre compte et vos activites.'
-                : 'Cette action est sensible. Connectez-vous pour continuer.'}
+                ? 'Connectez-vous avec votre email et mot de passe. Navito detecte automatiquement votre role.'
+                : 'Cette action est protegee. Connectez-vous pour continuer.'}
             </p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
-
-
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -121,25 +154,37 @@ export default function Login() {
               </div>
             </div>
 
-            <Button type="submit" className="h-12 w-full rounded-xl bg-[#0D9488] text-white hover:bg-[#0D9488]/90">
-              Login
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="h-12 w-full rounded-xl bg-[#0D9488] text-white hover:bg-[#0D9488]/90"
+            >
+              {isSubmitting ? 'Connexion en cours...' : 'Se connecter'}
             </Button>
           </form>
 
           <p className="text-center text-sm text-gray-600">
             Pas de compte ?{' '}
-            <button onClick={() => navigate(`/register?redirectTo=${encodeURIComponent(redirectTo)}`)} className="font-medium text-[#0D9488] hover:underline">
+            <button
+              onClick={() => navigate(`/register?redirectTo=${encodeURIComponent(redirectTo)}`)}
+              className="font-medium text-[#0D9488] hover:underline"
+            >
               Inscription
             </button>
           </p>
 
-          <button
-            onClick={() => navigate('/country')}
-            className="mx-auto flex items-center gap-2 text-sm font-medium text-[#0D9488] hover:underline"
-          >
-            Aller directement au choix du pays
-            <ArrowRight className="h-4 w-4" />
-          </button>
+          {canContinueAsGuest && (
+            <button
+              onClick={() => {
+                setAuthMode('guest');
+                navigate('/country');
+              }}
+              className="mx-auto flex items-center gap-2 text-sm font-medium text-[#0D9488] hover:underline"
+            >
+              Continuer en invite
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
     </div>

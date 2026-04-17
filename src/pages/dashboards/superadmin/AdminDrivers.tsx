@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Car,
   Search,
@@ -22,6 +22,9 @@ import {
 import { Card, CardContent, CardHeader } from "../../../app/components/ui/card";
 import { cn } from "../../../app/components/ui/utils";
 import { type SuperAdminNavId } from "./MoroccoSuperAdminShell";
+import { toast } from "sonner";
+import { useAppContext } from "../../../app/context/AppContext";
+import { fetchPendingDrivers, updateDriverApproval, type ApiPendingDriver } from "../../../app/services/api";
 
 type Driver = {
   id: string;
@@ -99,7 +102,7 @@ const initialDrivers: Driver[] = [
 ];
 
 type PendingDriver = {
-  id: string;
+  id: string | number;
   name: string;
   email: string;
   phone: string;
@@ -146,6 +149,7 @@ const initialPending: PendingDriver[] = [
 ];
 
 export default function AdminDrivers({ onNavigate }: { onNavigate: (id: SuperAdminNavId) => void }) {
+  const { authToken } = useAppContext();
   const [drivers, setDrivers] = useState<Driver[]>(initialDrivers);
   const [pending, setPending] = useState<PendingDriver[]>(initialPending);
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
@@ -153,6 +157,34 @@ export default function AdminDrivers({ onNavigate }: { onNavigate: (id: SuperAdm
   const [viewDocDriver, setViewDocDriver] = useState<PendingDriver | null>(null);
   const [showDocModal, setShowDocModal] = useState(false);
   const [previewDoc, setPreviewDoc] = useState<{name: string; url: string} | null>(null);
+
+  useEffect(() => {
+    if (!authToken) return;
+
+    fetchPendingDrivers(authToken)
+      .then((response) => {
+        const livePending = (response.data ?? []).map((item: ApiPendingDriver): PendingDriver => ({
+          id: item.id,
+          name: item.name,
+          email: item.email,
+          phone: item.phone ?? "N/A",
+          city: item.city ?? "N/A",
+          vehicle: item.vehicle_type ?? "Vehicle not provided",
+          submittedAt: item.submitted_at ? new Date(item.submitted_at).toLocaleString() : "Pending",
+          avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${encodeURIComponent(item.name)}`,
+          documents: [
+            { name: "Permis de conduire", submitted: true },
+            { name: "Carte CIN", submitted: true },
+            { name: "Assurance Professionnelle", submitted: true },
+            { name: "Contrôle Technique", submitted: true },
+          ],
+        }));
+        setPending(livePending);
+      })
+      .catch(() => {
+        // Keep local mock fallback for demo mode.
+      });
+  }, [authToken]);
 
   const filtered = drivers
     .filter((d) => d.status === "verified")
@@ -162,7 +194,13 @@ export default function AdminDrivers({ onNavigate }: { onNavigate: (id: SuperAdm
         d.city.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-  const handleConfirm = (p: PendingDriver) => {
+  const handleConfirm = async (p: PendingDriver) => {
+    if (authToken && typeof p.id === "number") {
+      await updateDriverApproval(p.id, "verified", authToken).catch((error) => {
+        toast.error(error instanceof Error ? error.message : "Unable to approve driver.");
+      });
+    }
+
     const newDriver: Driver = {
       id: "D-" + String(drivers.length + 1).padStart(3, "0"),
       name: p.name,
@@ -179,10 +217,17 @@ export default function AdminDrivers({ onNavigate }: { onNavigate: (id: SuperAdm
     };
     setDrivers((prev) => [...prev, newDriver]);
     setPending((prev) => prev.filter((x) => x.id !== p.id));
+    toast.success("Driver approved.");
   };
 
-  const handleReject = (id: string) => {
+  const handleReject = async (id: string | number) => {
+    if (authToken && typeof id === "number") {
+      await updateDriverApproval(id, "rejected", authToken).catch((error) => {
+        toast.error(error instanceof Error ? error.message : "Unable to reject driver.");
+      });
+    }
     setPending((prev) => prev.filter((x) => x.id !== id));
+    toast.success("Driver request rejected.");
   };
 
   return (

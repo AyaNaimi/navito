@@ -1,219 +1,932 @@
-import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Clock, MapPin, Search, SlidersHorizontal, Star, X } from 'lucide-react';
-import BottomNav from '../components/BottomNav';
-import CurrentLocationMap from '../components/CurrentLocationMap';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '../components/ui/sheet';
-import { Slider } from '../components/ui/slider';
-import { activities, monuments, restaurants } from '../data/mockData';
-import { ImageWithFallback } from '../components/figma/ImageWithFallback';
-import { useAppContext } from '../context/AppContext';
+/**
+ * Explore.tsx — Navito Travel Assistant
+ *
+ * Uses backend API to fetch places, activities, and restaurants.
+ * Falls back to Google Places API only if VITE_GOOGLE_MAPS_API_KEY is set.
+ */
 
-type FilterState = {
-  priceRange: [number, number];
-  rating: number;
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { APIProvider } from '@vis.gl/react-google-maps';
+import { AlertCircle, ChevronDown, Loader2, MapPin, Navigation, Search } from 'lucide-react';
+import { motion } from 'motion/react';
+import BottomNav from '../components/BottomNav';
+import PlacesExplorer from '../components/PlacesExplorer';
+import ExploreContent from '../components/ExploreContent';
+import { useAppContext } from '../context/AppContext';
+import { cities, type City } from '../data/mockData';
+import { detectLocation, fetchCities, type ApiCity } from '../services/api';
+
+const GOOGLE_MAPS_API_KEY = (import.meta as unknown as { env: Record<string, string> }).env
+  ?.VITE_GOOGLE_MAPS_API_KEY ?? '';
+
+function getCityCoords(cityName: string): { lat: number; lng: number } {
+  const found = cities.find((c) => c.name === cityName);
+  return found ? { lat: found.lat, lng: found.lng } : { lat: 33.5731, lng: -7.5898 };
+}
+
+function getCityId(cityName: string, citiesList: City[]): number | undefined {
+  const found = citiesList.find((c) => c.name === cityName);
+  return found?.id;
+}
+
+type PlacePrediction = {
+  description: string;
+  place_id: string;
+  structured_formatting?: {
+    main_text?: string;
+    secondary_text?: string;
+  };
 };
+
+function ExploreAddressSearch({
+  apiKey,
+  country,
+  authMode,
+  authToken,
+  onResolvedLocation,
+}: {
+  apiKey: string;
+  country: string;
+  authMode: 'guest' | 'login' | null;
+  authToken: string | null;
+  onResolvedLocation: (payload: {
+    lat: number;
+    lng: number;
+    label: string;
+    city?: string;
+    country?: string;
+  }) => void;
+}) {
+  const [query, setQuery] = useState('');
+  const [predictions, setPredictions] = useState<PlacePrediction[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [isResolving, setIsResolving] = useState(false);
+  const autocompleteRef = useRef<any>(null);
+  const geocoderRef = useRef<any>(null);
+
+  useEffect(() => {
+    const win = window as typeof window & { google?: any };
+    if (!apiKey || !win.google?.maps?.places || autocompleteRef.current) {
+      return;
+    }
+
+    autocompleteRef.current = new win.google.maps.places.AutocompleteService();
+    geocoderRef.current = new win.google.maps.Geocoder();
+  }, [apiKey]);
+
+  useEffect(() => {
+    const win = window as typeof window & { google?: any };
+    if (!query.trim()) {
+      setPredictions([]);
+      setSearchError(null);
+      setIsSearching(false);
+      return;
+    }
+
+    if (!win.google?.maps?.places || !autocompleteRef.current) {
+      setSearchError('La recherche Google Maps est en cours de chargement.');
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setIsSearching(true);
+      setSearchError(null);
+
+      autocompleteRef.current.getPlacePredictions(
+        {
+          input: query,
+          componentRestrictions: country ? { country: country === 'Morocco' ? 'ma' : undefined } : undefined,
+          types: ['geocode'],
+        },
+        (results: PlacePrediction[] | null, status: string) => {
+          setIsSearching(false);
+
+          if (status !== win.google.maps.places.PlacesServiceStatus.OK || !results?.length) {
+            setPredictions([]);
+            if (status !== win.google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+              setSearchError('Aucune suggestion exploitable pour cette adresse.');
+            }
+            return;
+          }
+
+          setPredictions(results);
+        },
+      );
+    }, 250);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [country, query]);
+
+  const handleSelectPrediction = async (prediction: PlacePrediction) => {
+    const win = window as typeof window & { google?: any };
+    if (!geocoderRef.current || !win.google?.maps) {
+      setSearchError('Le service de geocodage Google Maps n est pas disponible.');
+      return;
+    }
+
+    setIsResolving(true);
+    setSearchError(null);
+    setQuery(prediction.description);
+    setPredictions([]);
+
+    geocoderRef.current.geocode(
+      { placeId: prediction.place_id },
+      async (results: any[] | null, status: string) => {
+        if (status !== 'OK' || !results?.length) {
+          setIsResolving(false);
+          setSearchError('Impossible de centrer la carte sur cette adresse.');
+          return;
+        }
+
+        const result = results[0];
+        const location = result.geometry?.location;
+        const lat = typeof location?.lat === 'function' ? location.lat() : null;
+        const lng = typeof location?.lng === 'function' ? location.lng() : null;
+
+        if (lat == null || lng == null) {
+          setIsResolving(false);
+          setSearchError('Coordonnees introuvables pour cette adresse.');
+          return;
+        }
+
+        const cityComponent = result.address_components?.find((component: any) =>
+          component.types?.includes('locality') || component.types?.includes('administrative_area_level_1'),
+        );
+        const countryComponent = result.address_components?.find((component: any) =>
+          component.types?.includes('country'),
+        );
+
+        let detectedCity = cityComponent?.long_name ?? '';
+        let detectedCountry = countryComponent?.long_name ?? '';
+
+        try {
+          const response = await detectLocation(
+            { latitude: lat, longitude: lng },
+            authMode === 'login' ? authToken : null,
+          );
+
+          detectedCity = response.data?.city?.name ?? detectedCity;
+          detectedCountry = response.data?.country?.name ?? detectedCountry;
+        } catch {
+          // We keep the Google-formatted address even if backend reverse-geocoding fails.
+        }
+
+        onResolvedLocation({
+          lat,
+          lng,
+          label: result.formatted_address ?? prediction.description,
+          city: detectedCity,
+          country: detectedCountry,
+        });
+
+        setIsResolving(false);
+      },
+    );
+  };
+
+  return (
+    <div className="explore-page__search-card">
+      <div className="explore-page__search-head">
+        <div>
+          <p className="explore-page__search-title">Rechercher une adresse precise</p>
+          <p className="explore-page__search-text">
+            Utilisez Google Maps pour choisir un quartier, un hotel ou une adresse, puis recalculer les recommandations autour.
+          </p>
+        </div>
+      </div>
+
+      <div className="explore-page__search-box">
+        <Search className="explore-page__search-icon" />
+        <input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Ex: Jemaa el-Fna, Marrakech"
+          className="explore-page__search-input"
+        />
+        {(isSearching || isResolving) && <Loader2 className="explore-page__search-spinner" />}
+      </div>
+
+      {predictions.length > 0 && (
+        <div className="explore-page__search-results">
+          {predictions.map((prediction) => (
+            <button
+              key={prediction.place_id}
+              onClick={() => void handleSelectPrediction(prediction)}
+              className="explore-page__search-result"
+            >
+              <span className="explore-page__search-result-main">
+                {prediction.structured_formatting?.main_text ?? prediction.description}
+              </span>
+              <span className="explore-page__search-result-secondary">
+                {prediction.structured_formatting?.secondary_text ?? prediction.description}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {searchError && <p className="explore-page__search-feedback is-error">{searchError}</p>}
+    </div>
+  );
+}
 
 export default function Explore() {
   const navigate = useNavigate();
-  const { city, exploreMode, currentPosition } = useAppContext();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<'all' | 'monuments' | 'restaurants' | 'activities'>('all');
-  const [filters, setFilters] = useState<FilterState>({ priceRange: [0, 2000], rating: 0 });
+  const {
+    authMode,
+    authToken,
+    city,
+    country,
+    setCity,
+    setCountry,
+    exploreMode,
+    currentPosition,
+    useCurrentLocation,
+  } = useAppContext();
 
-  const allItems = useMemo(
-    () => [
-      ...monuments.map((item) => ({ ...item, type: 'monument' as const })),
-      ...restaurants.map((item) => ({ ...item, type: 'restaurant' as const })),
-      ...activities.map((item) => ({ ...item, type: 'activity' as const })),
-    ],
-    []
-  );
+  const [isApiKeyWarning, setIsApiKeyWarning] = useState(!GOOGLE_MAPS_API_KEY);
+  const [isLocating, setIsLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [locationLabel, setLocationLabel] = useState<string | null>(null);
+  const [apiCities, setApiCities] = useState<ApiCity[]>([]);
 
-  const scopedItems = useMemo(() => {
-    if (exploreMode === 'current-location' || !city) {
-      return allItems;
+  useEffect(() => {
+    fetchCities()
+      .then((response) => {
+        setApiCities(response.data ?? []);
+      })
+      .catch(() => {
+        setApiCities([]);
+      });
+  }, []);
+
+  const mapCenter =
+    exploreMode === 'current-location' && currentPosition
+      ? currentPosition
+      : getCityCoords(city);
+
+  const displayCity =
+    exploreMode === 'current-location'
+      ? locationLabel ?? 'Votre position actuelle'
+      : city || 'Maroc';
+
+  const currentCityId = getCityId(city, cities) ?? apiCities.find(c => c.name === city)?.id;
+
+  const handleUsePreciseLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError('La geolocalisation n est pas disponible sur cet appareil.');
+      return;
     }
 
-    return allItems.filter((item) => item.city === city);
-  }, [allItems, city, exploreMode]);
+    setIsLocating(true);
+    setLocationError(null);
 
-  const filteredItems = scopedItems.filter((item) => {
-    if (searchQuery && !item.name.toLowerCase().includes(searchQuery.toLowerCase())) {
-      return false;
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        try {
+          const response = await detectLocation(
+            {
+              latitude: coords.latitude,
+              longitude: coords.longitude,
+            },
+            authMode === 'login' ? authToken : null,
+          );
+
+          const detectedCountry = response.data?.country?.name ?? '';
+          const detectedCity = response.data?.city?.name ?? '';
+
+          if (detectedCountry) {
+            setCountry(detectedCountry);
+          }
+          if (detectedCity) {
+            setCity(detectedCity);
+          }
+
+          useCurrentLocation({ lat: coords.latitude, lng: coords.longitude });
+          setLocationLabel(
+            detectedCity
+              ? `${detectedCity}${detectedCountry ? `, ${detectedCountry}` : ''}`
+              : 'Votre position actuelle',
+          );
+        } catch {
+          useCurrentLocation({ lat: coords.latitude, lng: coords.longitude });
+          setLocationLabel('Votre position actuelle');
+          setLocationError(
+            'Position detectee, mais la ville exacte n a pas pu etre resolue. Les recommandations proches restent actives.',
+          );
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      () => {
+        setIsLocating(false);
+        setLocationError('Impossible d acceder a votre position. Autorisez la localisation pour des recommandations plus precises.');
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+    );
+  };
+
+  const handleResolvedAddress = ({
+    lat,
+    lng,
+    label,
+    city: resolvedCity,
+    country: resolvedCountry,
+  }: {
+    lat: number;
+    lng: number;
+    label: string;
+    city?: string;
+    country?: string;
+  }) => {
+    if (resolvedCountry) {
+      setCountry(resolvedCountry);
+    }
+    if (resolvedCity) {
+      setCity(resolvedCity);
     }
 
-    if (activeTab !== 'all' && item.type !== activeTab.slice(0, -1)) {
-      return false;
-    }
-
-    if (filters.rating && item.rating < filters.rating) {
-      return false;
-    }
-
-    const price = 'price' in item ? (typeof item.price === 'number' ? item.price : 0) : 'avgPrice' in item ? item.avgPrice : 0;
-    return price >= filters.priceRange[0] && price <= filters.priceRange[1];
-  });
-
-  const mapCenter: [number, number] = currentPosition ? [currentPosition.lat, currentPosition.lng] : [33.5731, -7.5898];
+    useCurrentLocation({ lat, lng });
+    setLocationLabel(label);
+    setLocationError(null);
+  };
 
   return (
-    <div className="size-full bg-white/65 backdrop-blur-sm flex flex-col pb-16">
-      <div className="sticky top-0 z-10 border-b bg-white/85 backdrop-blur-md">
-        <div className="px-6 py-4">
-          <h1 className="mb-4 text-2xl font-bold text-gray-900">
-            {exploreMode === 'current-location' ? 'Explore with current map' : `Explore ${city || 'Morocco'}`}
-          </h1>
+    <div className="explore-page">
+      <div className="explore-page__topbar">
+        <div className="explore-page__topbar-inner">
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="explore-page__location-row"
+          >
+            <MapPin className="explore-page__location-icon" />
+            <span className="explore-page__location-label">{displayCity}</span>
 
-          <div className="flex gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-              <Input
-                placeholder="Search attractions, restaurants..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-12 rounded-xl pl-12"
-              />
-              {searchQuery && (
-                <button onClick={() => setSearchQuery('')} className="absolute right-4 top-1/2 -translate-y-1/2">
-                  <X className="h-5 w-5 text-gray-400" />
-                </button>
-              )}
-            </div>
-
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" className="h-12 rounded-xl px-4">
-                  <SlidersHorizontal className="h-5 w-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="bottom" className="h-[70vh]">
-                <SheetHeader>
-                  <SheetTitle>Filters</SheetTitle>
-                </SheetHeader>
-                <div className="space-y-6 py-6">
-                  <div>
-                    <label className="mb-3 block text-sm font-medium text-gray-900">
-                      Price Range: {filters.priceRange[0]} - {filters.priceRange[1]} MAD
-                    </label>
-                    <Slider
-                      min={0}
-                      max={2000}
-                      step={50}
-                      value={filters.priceRange}
-                      onValueChange={(value) => setFilters((current) => ({ ...current, priceRange: value as [number, number] }))}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="mb-3 block text-sm font-medium text-gray-900">Minimum Rating</label>
-                    <div className="flex gap-2">
-                      {[0, 3, 3.5, 4, 4.5].map((rating) => (
-                        <button
-                          key={rating}
-                          onClick={() => setFilters((current) => ({ ...current, rating }))}
-                          className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                            filters.rating === rating ? 'bg-[#0D9488] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                          }`}
-                        >
-                          {rating > 0 ? `${rating}+` : 'Any'}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
-
-          <div className="scrollbar-hide mt-4 flex gap-2 overflow-x-auto">
-            {[
-              { id: 'all', label: 'All' },
-              { id: 'monuments', label: 'Monuments' },
-              { id: 'restaurants', label: 'Restaurants' },
-              { id: 'activities', label: 'Activities' },
-            ].map((tab) => (
+            {city && (
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-colors ${
-                  activeTab === tab.id ? 'bg-[#0D9488] text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                onClick={() => navigate('/country')}
+                className="explore-page__change-btn"
               >
-                {tab.label}
+                Changer <ChevronDown style={{ width: 14, height: 14 }} />
               </button>
-            ))}
-          </div>
+            )}
+          </motion.div>
+
+          <motion.h1 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="explore-page__title"
+          >
+            Explorer
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="explore-page__subtitle"
+          >
+            Monuments, restaurants et activites a proximite
+          </motion.p>
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto px-6 py-4">
-        {exploreMode === 'current-location' && (
-          <div className="mb-6 space-y-3">
-            <CurrentLocationMap center={mapCenter} label="Your current area" />
-            <div className="rounded-2xl border border-gray-200 bg-white p-4">
-              <p className="font-semibold text-gray-900">Carte actuelle active</p>
-              <p className="mt-1 text-sm text-gray-600">
-                Navito affiche le contenu global tant qu’aucune ville locale n’est encore choisie.
+      <div className="explore-page__body">
+        {isApiKeyWarning && GOOGLE_MAPS_API_KEY && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="explore-page__warning"
+          >
+            <AlertCircle style={{ width: 18, height: 18, flexShrink: 0 }} />
+            <div>
+              <strong>Cle API Google Maps detectee</strong>
+              <p>
+                La carte Google Maps est activee. Les lieux seront affiches sur la carte.
               </p>
-              <button onClick={() => navigate('/country')} className="mt-3 text-sm font-medium text-[#0D9488] hover:underline">
-                Choisir un pays et une ville
+              <button
+                onClick={() => setIsApiKeyWarning(false)}
+                className="explore-page__warning-dismiss"
+              >
+                Masquer
               </button>
             </div>
-          </div>
+          </motion.div>
         )}
 
-        <p className="mb-4 text-sm text-gray-600">{filteredItems.length} résultats trouvés</p>
-
-        <div className="space-y-4">
-          {filteredItems.map((item) => (
-            <div
-              key={`${item.type}-${item.id}`}
-              onClick={() => navigate(item.type === 'restaurant' ? `/restaurant/${item.id}` : `/activity/${item.id}`)}
-              className="cursor-pointer overflow-hidden rounded-2xl border border-gray-200 bg-white transition-colors hover:border-[#0D9488]"
-            >
-              <div className="flex gap-3 p-3">
-                <div className="relative h-28 w-28 flex-shrink-0 overflow-hidden rounded-xl">
-                  <ImageWithFallback src={item.image} alt={item.name} className="h-full w-full object-cover" />
-                </div>
-
-                <div className="flex min-w-0 flex-1 flex-col justify-between">
-                  <div>
-                    <h3 className="mb-1 font-bold text-gray-900">{item.name}</h3>
-                    <div className="mb-2 flex items-center gap-2 text-sm text-gray-600">
-                      <MapPin className="h-4 w-4" />
-                      <span>{item.city}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm font-medium">{item.rating}</span>
-                      </div>
-                      <span className="text-sm text-gray-600">({item.reviews} reviews)</span>
-                    </div>
-                  </div>
-
-                  <div className="mt-2 flex items-center justify-between">
-                    <div className="font-bold text-[#0D9488]">
-                      {'price' in item ? (typeof item.price === 'number' ? `${item.price} MAD` : item.price) : `${item.avgPrice} MAD avg`}
-                    </div>
-                    {'duration' in item && (
-                      <div className="flex items-center gap-1 text-sm text-gray-600">
-                        <Clock className="h-4 w-4" />
-                        <span>{item.duration}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+        {!city && exploreMode !== 'current-location' && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="explore-page__no-city"
+          >
+            <div className="explore-page__no-city-icon">
+              <MapPin style={{ width: 56, height: 56, color: '#0D9488' }} />
             </div>
-          ))}
-        </div>
+            <h2>Choisissez une ville</h2>
+            <p>
+              Selectionnez un pays et une ville pour explorer les lieux a
+              proximite depuis notre base de donnees.
+            </p>
+            <button
+              onClick={() => navigate('/country')}
+              className="explore-page__no-city-btn"
+            >
+              Choisir une ville
+            </button>
+          </motion.div>
+        )}
+
+        {(city || exploreMode === 'current-location') && GOOGLE_MAPS_API_KEY && (
+          <APIProvider apiKey={GOOGLE_MAPS_API_KEY} libraries={['places']}>
+            <div className="explore-page__controls-grid">
+              <div className="explore-page__locator-card">
+                <div>
+                  <p className="explore-page__locator-title">Geolocalisation</p>
+                  <p className="explore-page__locator-text">
+                    Recentrez la carte sur votre position actuelle pour obtenir des recommandations vraiment proches.
+                  </p>
+                  {(locationError || (exploreMode === 'current-location' && currentPosition)) && (
+                    <p className={`explore-page__locator-feedback ${locationError ? 'is-error' : 'is-success'}`}>
+                      {locationError
+                        ? locationError
+                        : `Position active: ${locationLabel ?? 'Votre position actuelle'} (${mapCenter.lat.toFixed(4)}, ${mapCenter.lng.toFixed(4)})`}
+                    </p>
+                  )}
+                </div>
+
+                <button
+                  onClick={handleUsePreciseLocation}
+                  className="explore-page__locator-btn"
+                  disabled={isLocating}
+                >
+                  {isLocating ? (
+                    <>
+                      <Loader2 className="explore-page__locator-btn-icon explore-page__locator-btn-icon--spin" />
+                      Localisation...
+                    </>
+                  ) : (
+                    <>
+                      <Navigation className="explore-page__locator-btn-icon" />
+                      Utiliser ma position
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <ExploreAddressSearch
+                apiKey={GOOGLE_MAPS_API_KEY}
+                country={country}
+                authMode={authMode}
+                authToken={authToken}
+                onResolvedLocation={handleResolvedAddress}
+              />
+            </div>
+          </APIProvider>
+        )}
+
+        {(city || exploreMode === 'current-location') && GOOGLE_MAPS_API_KEY && (
+          <PlacesExplorer
+            apiKey={GOOGLE_MAPS_API_KEY}
+            center={mapCenter}
+            cityName={displayCity}
+            radius={3000}
+            mapHeight="400px"
+            onPlaceSelect={(place) => {
+              console.log('[Navito] Place selected:', place);
+            }}
+          />
+        )}
+
+        {(city || exploreMode === 'current-location') && !GOOGLE_MAPS_API_KEY && currentCityId && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="explore-page__db-content"
+          >
+            <ExploreContent
+              cityId={currentCityId}
+              cityName={displayCity}
+              center={mapCenter}
+            />
+          </motion.div>
+        )}
+
+        {(city || exploreMode === 'current-location') && !GOOGLE_MAPS_API_KEY && !currentCityId && (
+          <div className="explore-page__no-key-fallback">
+            <div className="explore-page__no-key-icon">
+              <MapPin style={{ width: 48, height: 48, color: '#94a3b8' }} />
+            </div>
+            <h3>Ville non identifiee</h3>
+            <p>
+              Impossible de trouver l'ID de la ville. Veuillez selectionner une ville supportee.
+            </p>
+            <button
+              onClick={() => navigate('/country')}
+              className="explore-page__no-city-btn"
+            >
+              Choisir une ville
+            </button>
+          </div>
+        )}
       </div>
 
       <BottomNav />
+
+      <style>{`
+        :root {
+          --navito-teal: #0d9488;
+          --navito-teal-light: #f0fdfa;
+        }
+
+        .explore-page {
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          background: linear-gradient(160deg, #f0fdfa 0%, #f8fafc 50%, #fff 100%);
+          font-family: 'Inter', system-ui, sans-serif;
+          padding-bottom: 72px;
+        }
+
+        .explore-page__topbar {
+          background: rgba(255,255,255,0.9);
+          backdrop-filter: blur(16px);
+          border-bottom: 1px solid rgba(0,0,0,0.06);
+          position: sticky;
+          top: 0;
+          z-index: 20;
+        }
+        .explore-page__topbar-inner {
+          padding: 20px 20px 16px;
+          max-width: 900px;
+          margin: 0 auto;
+        }
+        .explore-page__location-row {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-bottom: 8px;
+        }
+        .explore-page__location-icon {
+          width: 16px;
+          height: 16px;
+          color: var(--navito-teal);
+        }
+        .explore-page__location-label {
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--navito-teal);
+        }
+        .explore-page__change-btn {
+          margin-left: auto;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 12px;
+          font-weight: 600;
+          color: #64748b;
+          background: #f1f5f9;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          padding: 4px 10px;
+          cursor: pointer;
+          transition: all 0.15s;
+        }
+        .explore-page__change-btn:hover {
+          background: #e2e8f0;
+          color: #374151;
+        }
+        .explore-page__title {
+          font-size: 26px;
+          font-weight: 800;
+          color: #0f172a;
+          margin: 0 0 4px;
+          letter-spacing: -0.5px;
+        }
+        .explore-page__subtitle {
+          font-size: 14px;
+          color: #64748b;
+          margin: 0;
+        }
+
+        .explore-page__body {
+          flex: 1;
+          padding: 20px 16px;
+          max-width: 900px;
+          margin: 0 auto;
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+        }
+        .explore-page__controls-grid {
+          display: grid;
+          gap: 16px;
+        }
+        .explore-page__db-content {
+          background: white;
+          border-radius: 24px;
+          overflow: hidden;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        .explore-page__locator-card {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          padding: 16px 18px;
+          background: linear-gradient(135deg, #ecfeff 0%, #f8fafc 100%);
+          border: 1px solid #bae6fd;
+          border-radius: 20px;
+          box-shadow: 0 10px 30px rgba(14, 116, 144, 0.08);
+        }
+        .explore-page__search-card {
+          padding: 16px 18px;
+          background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+          border: 1px solid #dbeafe;
+          border-radius: 20px;
+          box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+        }
+        .explore-page__search-head {
+          margin-bottom: 12px;
+        }
+        .explore-page__search-title {
+          margin: 0 0 4px;
+          font-size: 14px;
+          font-weight: 800;
+          color: #0f172a;
+        }
+        .explore-page__search-text {
+          margin: 0;
+          font-size: 13px;
+          color: #475569;
+          line-height: 1.5;
+        }
+        .explore-page__search-box {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 0 14px;
+          height: 52px;
+          border-radius: 16px;
+          border: 1px solid #cbd5e1;
+          background: #fff;
+        }
+        .explore-page__search-icon {
+          width: 16px;
+          height: 16px;
+          color: #64748b;
+          flex-shrink: 0;
+        }
+        .explore-page__search-input {
+          width: 100%;
+          border: none;
+          outline: none;
+          font-size: 14px;
+          color: #0f172a;
+          background: transparent;
+        }
+        .explore-page__search-input::placeholder {
+          color: #94a3b8;
+        }
+        .explore-page__search-spinner {
+          width: 16px;
+          height: 16px;
+          color: #0d9488;
+          animation: explore-page-spin 0.9s linear infinite;
+        }
+        .explore-page__search-results {
+          margin-top: 10px;
+          border: 1px solid #e2e8f0;
+          border-radius: 16px;
+          background: #fff;
+          overflow: hidden;
+        }
+        .explore-page__search-result {
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          padding: 12px 14px;
+          text-align: left;
+          background: #fff;
+          border: none;
+          border-bottom: 1px solid #f1f5f9;
+          cursor: pointer;
+          transition: background 0.15s ease;
+        }
+        .explore-page__search-result:last-child {
+          border-bottom: none;
+        }
+        .explore-page__search-result:hover {
+          background: #f8fafc;
+        }
+        .explore-page__search-result-main {
+          font-size: 13px;
+          font-weight: 700;
+          color: #0f172a;
+        }
+        .explore-page__search-result-secondary {
+          font-size: 12px;
+          color: #64748b;
+        }
+        .explore-page__search-feedback {
+          margin: 10px 0 0;
+          font-size: 12px;
+          font-weight: 600;
+        }
+        .explore-page__search-feedback.is-error {
+          color: #b45309;
+        }
+        .explore-page__locator-title {
+          margin: 0 0 4px;
+          font-size: 14px;
+          font-weight: 800;
+          color: #0f172a;
+        }
+        .explore-page__locator-text {
+          margin: 0;
+          font-size: 13px;
+          color: #475569;
+          line-height: 1.5;
+        }
+        .explore-page__locator-feedback {
+          margin: 10px 0 0;
+          font-size: 12px;
+          font-weight: 600;
+          color: #0f766e;
+        }
+        .explore-page__locator-feedback.is-error {
+          color: #b45309;
+        }
+        .explore-page__locator-feedback.is-success {
+          color: #0f766e;
+        }
+        .explore-page__locator-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          min-width: 190px;
+          padding: 12px 18px;
+          border: none;
+          border-radius: 14px;
+          background: linear-gradient(135deg, #0d9488 0%, #0891b2 100%);
+          color: #fff;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+          box-shadow: 0 10px 24px rgba(13, 148, 136, 0.26);
+        }
+        .explore-page__locator-btn:hover:not(:disabled) {
+          transform: translateY(-1px);
+          box-shadow: 0 14px 30px rgba(13, 148, 136, 0.32);
+        }
+        .explore-page__locator-btn:disabled {
+          cursor: wait;
+          opacity: 0.75;
+        }
+        .explore-page__locator-btn-icon {
+          width: 16px;
+          height: 16px;
+        }
+        .explore-page__locator-btn-icon--spin {
+          animation: explore-page-spin 0.9s linear infinite;
+        }
+        @keyframes explore-page-spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        .explore-page__warning {
+          display: flex;
+          gap: 12px;
+          padding: 16px;
+          background: #f0fdfa;
+          border: 1px solid #99f6e4;
+          border-radius: 14px;
+          color: #0f766e;
+          font-size: 13px;
+          line-height: 1.5;
+        }
+        .explore-page__warning p {
+          margin: 4px 0 0;
+          color: #115e59;
+        }
+        .explore-page__warning code {
+          background: #ccfbf1;
+          border-radius: 4px;
+          padding: 1px 5px;
+          font-size: 11px;
+        }
+        .explore-page__warning-dismiss {
+          margin-top: 8px;
+          font-size: 12px;
+          font-weight: 600;
+          color: #0f766e;
+          text-decoration: underline;
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 0;
+        }
+
+        .explore-page__no-city {
+          text-align: center;
+          padding: 60px 24px;
+          background: #fff;
+          border-radius: 24px;
+          border: 1px dashed #cbd5e1;
+        }
+        .explore-page__no-city-icon {
+          font-size: 56px;
+          margin-bottom: 16px;
+          display: flex;
+          justify-content: center;
+        }
+        .explore-page__no-city h2 {
+          font-size: 20px;
+          font-weight: 700;
+          color: #0f172a;
+          margin: 0 0 8px;
+        }
+        .explore-page__no-city p {
+          font-size: 14px;
+          color: #64748b;
+          max-width: 320px;
+          margin: 0 auto 20px;
+          line-height: 1.6;
+        }
+        .explore-page__no-city-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 12px 24px;
+          background: var(--navito-teal);
+          color: #fff;
+          border: none;
+          border-radius: 14px;
+          font-size: 14px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .explore-page__no-city-btn:hover {
+          background: #0f766e;
+          transform: translateY(-1px);
+          box-shadow: 0 6px 20px rgba(13,148,136,0.35);
+        }
+
+        .explore-page__no-key-fallback {
+          text-align: center;
+          padding: 48px 24px;
+          background: #fff;
+          border-radius: 24px;
+          border: 1px solid #e2e8f0;
+        }
+        .explore-page__no-key-icon {
+          margin-bottom: 12px;
+          display: flex;
+          justify-content: center;
+        }
+        .explore-page__no-key-fallback h3 {
+          font-size: 18px;
+          font-weight: 700;
+          color: #0f172a;
+          margin: 0 0 8px;
+        }
+        .explore-page__no-key-fallback p {
+          font-size: 13px;
+          color: #64748b;
+          line-height: 1.6;
+        }
+        .explore-page__no-key-fallback code {
+          background: #f1f5f9;
+          border-radius: 4px;
+          padding: 1px 5px;
+          font-family: monospace;
+          font-size: 12px;
+        }
+        @media (max-width: 640px) {
+          .explore-page__controls-grid {
+            grid-template-columns: 1fr;
+          }
+          .explore-page__locator-card {
+            flex-direction: column;
+            align-items: stretch;
+          }
+          .explore-page__locator-btn {
+            width: 100%;
+            min-width: 0;
+          }
+        }
+      `}</style>
     </div>
   );
 }

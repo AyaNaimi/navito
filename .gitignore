@@ -1,27 +1,16 @@
 .qodo/
+
+# env (never commit secrets)
 .env
+.env.*
+!.env.example
+
+# deps / builds
+node_modules/
+dist/
+
+# local logs
 *.log
 
-/package-lock.json
-
-backend/.env
-backend/node_modules/
-backend/vendor/
-backend/public/build/
-backend/public/hot
-backend/storage/*.key
-backend/storage/pail/
-backend/storage/logs/*.log
-backend/bootstrap/cache/*.php
-backend/database/*.sqlite
-
-frontend/.git/
-frontend/.git.repo-backup/
-frontend/.env
-frontend/node_modules/
-frontend/dist/
-frontend/dev.log
-frontend/dev.err.log
-frontend/vite.out.log
-frontend/vite.err.log
-frontend/backend/
+# misc
+.DS_Store
